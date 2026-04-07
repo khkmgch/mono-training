@@ -1,7 +1,7 @@
-export async function roll() {
+export async function roll(): Promise<number> {
 	// Fetch a random number from 1 to 6
 	// (with a delay, so that we can see it)
-	return new Promise((fulfil, reject) => {
+	return new Promise<number>((fulfil, reject) => {
 		setTimeout(() => {
 			// simulate a flaky network
 			if (Math.random() < 0.3) {
