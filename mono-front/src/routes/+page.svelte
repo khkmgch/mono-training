@@ -11,35 +11,27 @@
 	<title>Tutorial - Mono Training</title>
 </svelte:head>
 
-{#if chapters.length === 0}
-	<p class="empty-message">No chapters available yet.</p>
-{:else}
-	<div class="tutorial-layout">
-		<nav aria-label="Chapter navigation">
-			{#each chapters as chapter (chapter.id)}
-				<button
-					onclick={() => (selectedChapterId = chapter.id)}
-					aria-current={selectedChapterId === chapter.id ? 'true' : undefined}
-				>
-					{chapter.label}
-				</button>
-			{/each}
-		</nav>
+<div class="tutorial-layout">
+	<nav aria-label="Chapter navigation">
+		{#each chapters as chapter (chapter.id)}
+			<button
+				onclick={() => (selectedChapterId = chapter.id)}
+				aria-current={selectedChapterId === chapter.id ? 'true' : undefined}
+			>
+				{chapter.label}
+			</button>
+		{/each}
+	</nav>
 
-		<main>
-			{#if selectedChapter.exercises.length > 0}
-				{#each selectedChapter.exercises as exercise (exercise.id)}
-					{@const ExComp = exercise.component}
-					<ExerciseCard title={exercise.title} docUrl={exercise.docUrl}>
-						<ExComp />
-					</ExerciseCard>
-				{/each}
-			{:else}
-				<p class="empty-message">No exercises in this chapter yet.</p>
-			{/if}
-		</main>
-	</div>
-{/if}
+	<main>
+		{#each selectedChapter.exercises as exercise (exercise.id)}
+			{@const ExComp = exercise.component}
+			<ExerciseCard title={exercise.title} docUrl={exercise.docUrl}>
+				<ExComp />
+			</ExerciseCard>
+		{/each}
+	</main>
+</div>
 
 <style>
 	.tutorial-layout {
@@ -85,12 +77,6 @@
 		gap: 1rem;
 		padding: 1rem;
 		overflow-y: auto;
-	}
-
-	.empty-message {
-		padding: 2rem;
-		color: var(--color-text-muted);
-		text-align: center;
 	}
 
 	@media (max-width: 767px) {
