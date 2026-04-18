@@ -24,12 +24,13 @@
 			<a href={resolve('/')} aria-current={page.url.pathname === '/' ? 'page' : undefined}>
 				Tutorial
 			</a>
-			<a
+			// TODO: Add more links as needed
+			<!-- <a
 				href={resolve('/users')}
 				aria-current={page.url.pathname.startsWith('/users') ? 'page' : undefined}
 			>
 				User Management
-			</a>
+			</a> -->
 		</nav>
 	</header>
 
