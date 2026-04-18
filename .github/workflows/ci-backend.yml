@@ -1,5 +1,3 @@
-# test: verify path filter
-
 name: CI Backend
 
 on:
