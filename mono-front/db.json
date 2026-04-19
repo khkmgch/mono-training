@@ -1,0 +1,89 @@
+{
+	"$schema": "./node_modules/json-server/schema.json",
+	"users": [
+		{
+			"id": "a08aba37-52ca-4756-9650-3753ccd02fa6",
+			"loginId": "tanaka01",
+			"fullName": "Tanaka Taro",
+			"version": 1,
+			"updatedAt": "2026-01-15T09:00:00+09:00"
+		},
+		{
+			"id": "69793e06-76d0-4b17-b96f-0bc9c5f4675a",
+			"loginId": "suzuki02",
+			"fullName": "Suzuki Hanako",
+			"version": 1,
+			"updatedAt": "2026-02-01T10:30:00+09:00"
+		},
+		{
+			"id": "b02b7e8e-fbda-45e6-95ec-ec9e3ec7e943",
+			"loginId": "sato03",
+			"fullName": "Sato Kenichi",
+			"version": 1,
+			"updatedAt": "2026-03-01T11:00:00+09:00"
+		},
+		{
+			"id": "09559906-0ea8-4a8a-a8bd-f66b97d8a74f",
+			"loginId": "yamada04",
+			"fullName": "Yamada Misaki",
+			"version": 1,
+			"updatedAt": "2026-03-01T08:45:00+09:00"
+		},
+		{
+			"id": "4613ba65-4f4b-4fbf-96c1-5952ce50327b",
+			"loginId": "takahashi05",
+			"fullName": "Takahashi Ryosuke",
+			"version": 1,
+			"updatedAt": "2026-03-10T16:20:00+09:00"
+		},
+		{
+			"id": "6bed9853-c2b3-4849-883a-42c5c2cf3704",
+			"loginId": "ito06",
+			"fullName": "Ito Naoki",
+			"version": 1,
+			"updatedAt": "2026-03-20T09:30:00+09:00"
+		},
+		{
+			"id": "80691337-ba9e-4761-8f0e-fdf45e299029",
+			"loginId": "watanabe07",
+			"fullName": "Watanabe Yuko",
+			"version": 1,
+			"updatedAt": "2026-03-20T13:15:00+09:00"
+		},
+		{
+			"id": "fd6abcf1-6d8a-477c-ad54-51bbd701db1c",
+			"loginId": "nakamura08",
+			"fullName": "Nakamura Daisuke",
+			"version": 1,
+			"updatedAt": "2026-04-01T14:00:00+09:00"
+		},
+		{
+			"id": "919e140d-69b0-4472-afc4-18ae328d6349",
+			"loginId": "kobayashi09",
+			"fullName": "Kobayashi Emi",
+			"version": 1,
+			"updatedAt": "2026-04-01T09:00:00+09:00"
+		},
+		{
+			"id": "3658a048-a73b-4a53-bf84-70c56c650a04",
+			"loginId": "kato10",
+			"fullName": "Kato Shota",
+			"version": 1,
+			"updatedAt": "2026-04-05T15:30:00+09:00"
+		},
+		{
+			"id": "ce87a897-e6ae-43d5-9b6c-7ca4bed0c380",
+			"loginId": "yoshida11",
+			"fullName": "Yoshida Asuka",
+			"version": 1,
+			"updatedAt": "2026-04-08T08:00:00+09:00"
+		},
+		{
+			"id": "1c7d4ac8-ce6a-4eca-8e86-ec18c376730d",
+			"loginId": "yamamoto12",
+			"fullName": "Yamamoto Takashi",
+			"version": 1,
+			"updatedAt": "2026-04-10T12:00:00+09:00"
+		}
+	]
+}
