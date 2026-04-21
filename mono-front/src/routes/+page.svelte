@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ExerciseCard from '$lib/domain/tutorial/components/ExerciseCard.svelte';
-	import { chapters } from '$lib/domain/tutorial/registry/chapters';
+	import ExerciseCard from '$lib/app/features/tutorial/components/ExerciseCard.svelte';
+	import { chapters } from '$lib/app/features/tutorial/registry/chapters';
 
 	let selectedChapterId = $state(chapters[0].id);
 
