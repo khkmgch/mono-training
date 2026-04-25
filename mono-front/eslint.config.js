@@ -35,5 +35,8 @@ export default defineConfig(
 				svelteConfig
 			}
 		}
+	},
+	{
+		ignores: ['src/lib/paraglide/**', 'project.inlang/**']
 	}
 );

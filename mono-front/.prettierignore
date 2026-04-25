@@ -7,3 +7,7 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Tool-managed (generated / configured by inlang/paraglide-js)
+src/lib/paraglide/
+project.inlang/
