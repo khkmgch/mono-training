@@ -5,7 +5,11 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [
-		paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide', strategy:['cookie', 'preferredLanguage', 'baseLocale'] }),
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+			strategy: ['cookie', 'preferredLanguage', 'baseLocale']
+		}),
 		sveltekit(),
 		svelteTesting()
 	],
