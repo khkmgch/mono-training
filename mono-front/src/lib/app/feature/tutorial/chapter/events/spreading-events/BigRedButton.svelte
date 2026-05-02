@@ -9,6 +9,7 @@
 		font-size: 1.4em;
 		width: 6em;
 		height: 6em;
+
 		border-radius: 50%;
 		background: radial-gradient(circle at 25% 25%, hsl(0, 100%, 50%) 0, hsl(0, 100%, 40%) 100%);
 		box-shadow:

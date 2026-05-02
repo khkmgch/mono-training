@@ -12,7 +12,7 @@
 	let resetKey = $state(0);
 </script>
 
-<section>
+<article>
 	<header class="card-header">
 		<h3>{title}</h3>
 		<div class="card-actions">
@@ -34,24 +34,17 @@
 			{@render children()}
 		{/key}
 	</div>
-</section>
+</article>
 
 <style>
-	section {
-		border: 1px solid var(--color-border);
-	}
-
 	.card-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.5rem 1rem;
-		border-bottom: 1px solid var(--color-border);
 	}
 
 	.card-header h3 {
 		margin: 0;
-		font-size: 1rem;
 	}
 
 	.card-actions {
@@ -60,8 +53,7 @@
 		align-items: center;
 	}
 
-	.card-actions a,
-	.card-actions button {
+	.card-actions :is(a, button) {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -76,14 +68,12 @@
 		text-decoration: none;
 	}
 
-	.card-actions a:hover,
-	.card-actions button:hover,
-	.card-actions button:focus-visible {
-		color: var(--color-accent);
+	.card-actions :is(a:hover, button:hover, button:focus-visible) {
+		color: var(--pico-primary);
 	}
 
 	.card-body {
-		padding: 1rem;
+		padding: 0.5rem;
 		overflow-x: auto;
 	}
 </style>

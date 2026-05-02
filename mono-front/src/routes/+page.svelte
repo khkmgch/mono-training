@@ -12,16 +12,22 @@
 </svelte:head>
 
 <div class="tutorial-layout">
-	<nav aria-label="Chapter navigation">
-		{#each chapters as chapter (chapter.id)}
-			<button
-				onclick={() => (selectedChapterId = chapter.id)}
-				aria-current={selectedChapterId === chapter.id ? 'true' : undefined}
-			>
-				{chapter.label}
-			</button>
-		{/each}
-	</nav>
+	<aside class="chapter-sidebar">
+		<nav aria-label="Chapter navigation">
+			<ul>
+				{#each chapters as chapter (chapter.id)}
+					<li>
+						<button
+							onclick={() => (selectedChapterId = chapter.id)}
+							aria-current={selectedChapterId === chapter.id ? 'true' : undefined}
+						>
+							{chapter.label}
+						</button>
+					</li>
+				{/each}
+			</ul>
+		</nav>
+	</aside>
 
 	<main>
 		{#each selectedChapter.exercises as exercise (exercise.id)}
@@ -39,36 +45,35 @@
 		grid-template-columns: 200px 1fr;
 		flex: 1;
 		overflow: hidden;
-		max-width: 960px;
+		max-width: 1200px;
 		width: 100%;
 		margin: 0 auto;
 	}
 
-	nav {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		padding: 1rem 0.5rem;
-		border-right: 1px solid var(--color-border);
+	.chapter-sidebar {
+		border-right: 1px solid var(--pico-muted-border-color);
 	}
 
-	nav button {
-		padding: 0.5rem 0.75rem;
-		font-size: 0.875rem;
+	.chapter-sidebar nav ul {
+		margin: 0;
+	}
+
+	.chapter-sidebar nav button {
+		width: 100%;
 		text-align: left;
 		color: inherit;
 		background: none;
 		border: none;
-		cursor: pointer;
+		--pico-primary-focus: var(--pico-secondary-focus);
 	}
 
-	nav button[aria-current='true'] {
+	.chapter-sidebar nav button[aria-current='true'] {
 		font-weight: bold;
 	}
 
-	nav button:hover,
-	nav button:focus-visible {
-		background-color: var(--color-surface-hover);
+	.chapter-sidebar nav button:hover,
+	.chapter-sidebar nav button:focus-visible {
+		background-color: var(--pico-card-sectioning-background-color);
 	}
 
 	main {
@@ -85,15 +90,22 @@
 			grid-template-rows: auto 1fr;
 		}
 
-		nav {
-			flex-direction: row;
-			padding: 0.5rem;
+		.chapter-sidebar {
 			border-right: none;
-			border-bottom: 1px solid var(--color-border);
+			border-bottom: 1px solid var(--pico-muted-border-color);
 			overflow-x: auto;
 		}
 
-		nav button {
+		.chapter-sidebar nav ul {
+			display: flex;
+			flex-wrap: nowrap;
+		}
+
+		.chapter-sidebar nav li {
+			flex-shrink: 0;
+		}
+
+		.chapter-sidebar nav button {
 			white-space: nowrap;
 		}
 	}
