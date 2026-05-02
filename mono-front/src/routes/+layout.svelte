@@ -1,4 +1,6 @@
 <script lang="ts">
+	import '@picocss/pico/css/pico.min.css';
+	import '../app.css';
 	import favicon from '$lib/core/assets/favicon.svg';
 
 	import { page } from '$app/state';
