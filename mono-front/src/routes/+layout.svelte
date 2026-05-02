@@ -23,16 +23,26 @@
 <div class="app-layout">
 	<header class="global-header">
 		<nav>
-			<a href={resolve('/')} aria-current={page.url.pathname === '/' ? 'page' : undefined}>
-				Tutorial
-			</a>
-			// TODO: Add more links as needed
-			<!-- <a
-				href={resolve('/users')}
-				aria-current={page.url.pathname.startsWith('/users') ? 'page' : undefined}
-			>
-				User Management
-			</a> -->
+			<ul>
+				<li><strong>Mono Training</strong></li>
+			</ul>
+			<ul>
+				<li>
+					<a href={resolve('/')} aria-current={page.url.pathname === '/' ? 'page' : undefined}>
+						Tutorial
+					</a>
+				</li>
+				<!-- TODO: Add more links as needed
+				<li>
+					
+					<a
+						href={resolve('/users')}
+						aria-current={page.url.pathname.startsWith('/users') ? 'page' : undefined}
+					>
+						User Management
+					</a>
+				</li> -->
+			</ul>
 		</nav>
 	</header>
 
@@ -40,17 +50,6 @@
 </div>
 
 <style>
-	:global(:root) {
-		--color-border: #d1d5db;
-		--color-surface-hover: #f3f4f6;
-		--color-text-muted: #6b7280;
-		--color-accent: #2563eb;
-	}
-
-	:global(body) {
-		margin: 0;
-	}
-
 	.app-layout {
 		display: flex;
 		flex-direction: column;
@@ -58,27 +57,19 @@
 	}
 
 	.global-header {
-		border-bottom: 1px solid var(--color-border);
+		padding: 0 1rem;
+		border-bottom: 1px solid var(--pico-muted-border-color);
 	}
 
-	nav {
-		display: flex;
-		gap: 1rem;
-		padding: 0.75rem 1rem;
-	}
-
-	nav a {
-		padding: 0.25rem 0.5rem;
+	.global-header nav a {
 		color: inherit;
-		text-decoration: none;
 	}
 
-	nav a[aria-current='page'] {
+	.global-header nav a[aria-current='page'] {
 		font-weight: bold;
 	}
 
-	nav a:hover,
-	nav a:focus-visible {
-		background-color: var(--color-surface-hover);
+	.global-header nav a:is(:hover, :focus-visible) {
+		background-color: var(--pico-card-sectioning-background-color);
 	}
 </style>
