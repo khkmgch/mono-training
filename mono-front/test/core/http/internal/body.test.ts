@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { serializeBody } from '$lib/core/http/body';
+import { serializeBody } from '$lib/core/http/internal/body';
 
 describe('serializeBody', () => {
 	it('returns body: null for null', () => {

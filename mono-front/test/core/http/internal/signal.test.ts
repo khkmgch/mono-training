@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { combineSignals, isTimeoutAbort } from '$lib/core/http/signal';
+import { combineSignals, isTimeoutAbort } from '$lib/core/http/internal/signal';
 
 const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 

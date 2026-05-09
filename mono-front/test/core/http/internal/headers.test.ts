@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeHeaders } from '$lib/core/http/headers';
+import { mergeHeaders } from '$lib/core/http/internal/headers';
 
 describe('mergeHeaders', () => {
 	it('returns an empty Headers when no sources are provided', () => {

@@ -1,4 +1,4 @@
-import { HttpError, type ProblemDetails } from './errors';
+import { HttpError, type ProblemDetails } from '../errors';
 
 /**
  * Validate the response status, then auto-deserialize the body based on `Content-Type`:

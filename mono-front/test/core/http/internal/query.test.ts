@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appendQuery } from '$lib/core/http/query';
+import { appendQuery } from '$lib/core/http/internal/query';
 
 describe('appendQuery', () => {
 	it('returns the same URL when query is undefined', () => {
