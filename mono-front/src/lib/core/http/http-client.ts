@@ -1,10 +1,10 @@
 import { HttpError } from './errors';
-import { mergeHeaders } from './headers';
-import { appendQuery } from './query';
-import { resolveUrl } from './request';
-import { ensureOk, processResponse } from './response';
-import { combineSignals, isTimeoutAbort } from './signal';
-import { serializeBody } from './body';
+import { mergeHeaders } from './internal/headers';
+import { appendQuery } from './internal/query';
+import { resolveUrl } from './internal/request';
+import { ensureOk, processResponse } from './internal/response';
+import { combineSignals, isTimeoutAbort } from './internal/signal';
+import { serializeBody } from './internal/body';
 import type {
 	HttpClient,
 	HttpClientOptions,
@@ -36,7 +36,7 @@ const NO_RESPONSE_ERROR_HOOKS: ReadonlyArray<HttpResponseErrorHook> = [];
  * @example
  * ```ts
  * // src/routes/+page.ts
- * import { createHttpClient } from '$lib/core';
+ * import { createHttpClient } from '$lib/core/http';
  *
  * export const load = async ({ fetch }) => {
  *   const client = createHttpClient({ fetch, baseURL: '/api' });

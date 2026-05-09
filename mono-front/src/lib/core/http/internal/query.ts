@@ -1,4 +1,4 @@
-import type { Query, QueryValue } from './types';
+import type { Query, QueryValue } from '../types';
 
 /**
  * Append query parameters to a URL, returning a new `URL` instance.

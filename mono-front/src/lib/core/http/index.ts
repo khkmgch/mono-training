@@ -1,5 +1,5 @@
-export { createHttpClient } from './http/http-client';
-export { HttpError, isHttpError, type HttpErrorKind, type ProblemDetails } from './http/errors';
+export { createHttpClient } from './http-client';
+export { HttpError, isHttpError, type HttpErrorKind, type ProblemDetails } from './errors';
 export type {
 	HttpClient,
 	HttpClientOptions,
@@ -12,4 +12,4 @@ export type {
 	Query,
 	QueryValue,
 	RequestOptions
-} from './http/types';
+} from './types';

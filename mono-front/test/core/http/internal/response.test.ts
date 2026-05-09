@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ensureOk, processResponse } from '$lib/core/http/response';
+import { ensureOk, processResponse } from '$lib/core/http/internal/response';
 import { HttpError } from '$lib/core/http/errors';
 
 const makeRequest = (url = 'https://api.example.com/r'): Request => new Request(url);

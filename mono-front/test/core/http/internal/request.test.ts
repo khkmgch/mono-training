@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveUrl } from '$lib/core/http/request';
+import { resolveUrl } from '$lib/core/http/internal/request';
 
 describe('resolveUrl', () => {
 	it('returns the input directly when it is already a URL instance', () => {
