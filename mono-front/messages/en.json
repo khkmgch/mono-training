@@ -1,4 +1,73 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"example_message": "Hello world {username}"
+
+	"example_message": "Hello world {username}",
+
+	"common_a11y_error_prefix": "Error: ",
+
+	"common_validation_required": "{field} is required",
+	"common_validation_max_chars": "{field} must be {max} characters or fewer",
+	"common_validation_email_format": "{field} must be a valid email address",
+	"common_validation_unique": "This {field} is already in use",
+
+	"common_action_create_success": "{entity} created",
+	"common_action_update_success": "{entity} updated",
+	"common_action_save_success": "{entity} saved",
+	"common_action_delete_success": "{entity} deleted",
+
+	"common_dialog_delete_title": "Delete {entity}",
+	"common_dialog_delete_message": "Delete this {entity}?",
+	"common_dialog_save_title": "Save {entity}",
+	"common_dialog_save_message": "Save with these details?",
+	"common_dialog_destructive_warning": "This action cannot be undone",
+
+	"common_screen_title_list": "{entity} list",
+	"common_screen_title_create": "Create {entity}",
+	"common_screen_title_edit": "Edit {entity}",
+	"common_screen_title_detail": "{entity} detail",
+
+	"term_field_name": "Name",
+	"term_field_email": "Email",
+
+	"term_entity_user": "user",
+
+	"term_action_create": "Create",
+	"term_action_save": "Save",
+	"term_action_cancel": "Cancel",
+	"term_action_delete": "Delete",
+	"term_action_edit": "Edit",
+	"term_action_back": "Back",
+	"term_action_confirm": "OK",
+	"term_action_yes": "Yes",
+	"term_action_no": "No",
+
+	"shared_error_validation_title": "Please correct the highlighted fields",
+	"shared_error_conflict_unique_title": "Some values are already in use",
+	"shared_error_conflict_version_title": "Another user has already updated this",
+	"shared_error_not_found_title": "Data not found",
+	"shared_error_rate_limit_title": "Too many requests",
+	"shared_error_network_title": "Network connection failed",
+	"shared_error_timeout_title": "Request timed out",
+	"shared_error_parse_title": "Could not parse response",
+	"shared_error_system_title": "An error occurred",
+
+	"shared_error_conflict_version_body": "Loading the latest will discard your current edits",
+	"shared_error_conflict_version_action": "Load latest",
+
+	"shared_error_rate_limit_body_with_seconds": "Please retry after {seconds} seconds",
+	"shared_error_rate_limit_body": "Please wait a moment before retrying",
+
+	"shared_error_request_id_label": "Request ID: {requestId}",
+
+	"shared_pending_indicator_label": "Loading",
+	"shared_toast_dismiss_label": "Dismiss notification",
+	"shared_backend_toggle_label": "Backend",
+	"shared_backend_target_json_server": "json-server (mock)",
+	"shared_backend_target_quarkus": "Quarkus (api)",
+
+	"app_nav_home": "Home",
+	"app_nav_users": "Users",
+	"app_action_back_to_top": "Back to top",
+	"app_action_back_to_users": "Back to user list",
+	"app_action_retry": "Retry"
 }

@@ -6,19 +6,28 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 
-	import type { Snippet } from 'svelte';
+	import { setPendingContext, PendingIndicator } from '$lib/app/shared/pending';
+	import { setToastContext, Toaster } from '$lib/app/shared/toast';
+	import { setConfirmContext, ConfirmDialog } from '$lib/app/shared/confirmation';
+	import { BackendToggle } from '$lib/app/shared/backend';
 
-	interface Props {
-		children: Snippet;
-	}
+	import type { LayoutProps } from './$types';
 
-	let { children }: Props = $props();
+	let { children, data }: LayoutProps = $props();
+
+	setPendingContext();
+	setToastContext();
+	setConfirmContext();
 </script>
 
 <svelte:head>
 	<title>Mono Training</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
+
+<PendingIndicator />
+<Toaster />
+<ConfirmDialog />
 
 <div class="app-layout">
 	<header class="global-header">
@@ -34,7 +43,6 @@
 				</li>
 				<!-- TODO: Add more links as needed
 				<li>
-					
 					<a
 						href={resolve('/users')}
 						aria-current={page.url.pathname.startsWith('/users') ? 'page' : undefined}
@@ -42,6 +50,9 @@
 						User Management
 					</a>
 				</li> -->
+				<li>
+					<BackendToggle current={data.backend} />
+				</li>
 			</ul>
 		</nav>
 	</header>
@@ -50,6 +61,12 @@
 </div>
 
 <style>
+	:root {
+		--z-pending-indicator: 100;
+		--z-toaster: 200;
+		--z-confirm-dialog: 300;
+	}
+
 	.app-layout {
 		display: flex;
 		flex-direction: column;
