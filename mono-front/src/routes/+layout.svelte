@@ -21,7 +21,6 @@
 </script>
 
 <svelte:head>
-	<title>Mono Training</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
