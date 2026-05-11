@@ -1,6 +1,4 @@
 {
-	"$schema": "https://inlang.com/schema/inlang-message-format",
-
 	"example_message": "Hello world {username}",
 
 	"common_a11y_error_prefix": "Error: ",
