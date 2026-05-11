@@ -31,9 +31,10 @@ export async function processResponse<T = unknown>(
 		}
 		return (await response.text()) as T;
 	} catch (cause) {
+		const suffix = contentType ? ` as ${contentType}` : '';
 		throw new HttpError({
 			kind: 'parse',
-			message: `Failed to parse response body${contentType ? ` as ${contentType}` : ''}`,
+			message: `Failed to parse response body${suffix}`,
 			request,
 			response,
 			status: response.status,

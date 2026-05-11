@@ -1,4 +1,71 @@
 {
-	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"example_message": "こんにちは、{username} さん"
+	"example_message": "こんにちは、{username} さん",
+
+	"common_a11y_error_prefix": "エラー: ",
+
+	"common_validation_required": "{field}は必須です",
+	"common_validation_max_chars": "{field}は{max}文字以内で入力してください",
+	"common_validation_email_format": "{field}はメールアドレスの形式で入力してください",
+	"common_validation_unique": "この{field}は既に使用されています",
+
+	"common_action_create_success": "{entity}を作成しました",
+	"common_action_update_success": "{entity}の情報を更新しました",
+	"common_action_save_success": "{entity}を保存しました",
+	"common_action_delete_success": "{entity}を削除しました",
+
+	"common_dialog_delete_title": "{entity}の削除",
+	"common_dialog_delete_message": "この{entity}を削除しますか?",
+	"common_dialog_save_title": "{entity}の保存",
+	"common_dialog_save_message": "この内容で保存しますか?",
+	"common_dialog_destructive_warning": "この操作は取り消せません",
+
+	"common_screen_title_list": "{entity}一覧",
+	"common_screen_title_create": "{entity}作成",
+	"common_screen_title_edit": "{entity}編集",
+	"common_screen_title_detail": "{entity}詳細",
+
+	"term_field_name": "名前",
+	"term_field_email": "メールアドレス",
+
+	"term_entity_user": "ユーザー",
+
+	"term_action_create": "作成",
+	"term_action_save": "保存",
+	"term_action_cancel": "キャンセル",
+	"term_action_delete": "削除",
+	"term_action_edit": "編集",
+	"term_action_back": "戻る",
+	"term_action_confirm": "OK",
+	"term_action_yes": "はい",
+	"term_action_no": "いいえ",
+
+	"shared_error_validation_title": "入力内容に誤りがあります",
+	"shared_error_conflict_unique_title": "既に使われている値があります",
+	"shared_error_conflict_version_title": "他のユーザーが先に変更しました",
+	"shared_error_not_found_title": "データが見つかりません",
+	"shared_error_rate_limit_title": "アクセスが集中しています",
+	"shared_error_network_title": "ネットワーク接続に失敗しました",
+	"shared_error_timeout_title": "応答に時間がかかりすぎています",
+	"shared_error_parse_title": "応答を読み取れませんでした",
+	"shared_error_system_title": "エラーが発生しました",
+
+	"shared_error_conflict_version_body": "最新を取得すると現在の編集内容は失われます",
+	"shared_error_conflict_version_action": "最新を取得",
+
+	"shared_error_rate_limit_body_with_seconds": "{seconds}秒後に再試行してください",
+	"shared_error_rate_limit_body": "しばらく待ってから再試行してください",
+
+	"shared_error_request_id_label": "リクエスト ID: {requestId}",
+
+	"shared_pending_indicator_label": "読み込み中",
+	"shared_toast_dismiss_label": "通知を閉じる",
+	"shared_backend_toggle_label": "バックエンド",
+	"shared_backend_target_json_server": "json-server (mock)",
+	"shared_backend_target_quarkus": "Quarkus (api)",
+
+	"app_nav_home": "ホーム",
+	"app_nav_users": "ユーザー",
+	"app_action_back_to_top": "トップへ戻る",
+	"app_action_back_to_users": "ユーザー一覧へ戻る",
+	"app_action_retry": "再試行"
 }

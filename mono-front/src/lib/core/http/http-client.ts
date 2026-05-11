@@ -20,6 +20,14 @@ const NO_RESPONSE_HOOKS: ReadonlyArray<HttpResponseHook> = [];
 const NO_REQUEST_ERROR_HOOKS: ReadonlyArray<HttpRequestErrorHook> = [];
 const NO_RESPONSE_ERROR_HOOKS: ReadonlyArray<HttpResponseErrorHook> = [];
 
+function makeFallbackRequest(path: string | URL): Request {
+	try {
+		return new Request(typeof path === 'string' ? path : path.toString());
+	} catch {
+		return new Request('about:blank');
+	}
+}
+
 /**
  * Create an HTTP client bound to a specific `fetch` implementation.
  *
@@ -67,14 +75,6 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
 		return new Request(url, init);
 	}
 
-	function makeFallbackRequest(path: string | URL): Request {
-		try {
-			return new Request(typeof path === 'string' ? path : path.toString());
-		} catch {
-			return new Request('about:blank');
-		}
-	}
-
 	async function runRequestHooks(initial: Request): Promise<Request> {
 		let current = initial;
 		for (const hook of requestHooks) {
@@ -112,7 +112,7 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
 			const ms = opts.timeoutMs ?? options.defaultTimeoutMs;
 			return new HttpError({
 				kind: 'timeout',
-				message: ms !== undefined ? `Request timed out after ${ms}ms` : 'Request timed out',
+				message: ms === undefined ? 'Request timed out' : `Request timed out after ${ms}ms`,
 				request,
 				cause: request.signal.reason
 			});

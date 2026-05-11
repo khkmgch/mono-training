@@ -1,8 +1,10 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { getTextDirection } from '$lib/paraglide/runtime';
+import { readBackend, resolveBaseURL } from '$lib/app/shared/backend';
+import { handleUnexpected } from '$lib/app/shared/error';
 
-// creating a handle to use the paraglide middleware
 const paraglideHandle: Handle = ({ event, resolve }) =>
 	paraglideMiddleware(event.request, ({ request: localizedRequest, locale }) => {
 		event.request = localizedRequest;
@@ -13,4 +15,13 @@ const paraglideHandle: Handle = ({ event, resolve }) =>
 		});
 	});
 
-export const handle: Handle = paraglideHandle;
+const backendHandle: Handle = async ({ event, resolve }) => {
+	const backend = readBackend(event.cookies);
+	event.locals.backend = backend;
+	event.locals.apiBaseURL = resolveBaseURL(backend);
+	return resolve(event);
+};
+
+export const handle: Handle = sequence(paraglideHandle, backendHandle);
+
+export const handleError: HandleServerError = (input) => handleUnexpected(input);
