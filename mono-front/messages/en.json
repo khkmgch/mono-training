@@ -67,5 +67,15 @@
 	"app_nav_users": "Users",
 	"app_action_back_to_top": "Back to top",
 	"app_action_back_to_users": "Back to user list",
-	"app_action_retry": "Retry"
+	"app_action_retry": "Retry",
+
+	"list_pagination_nav": "Pagination",
+	"list_pagination_previous": "Previous",
+	"list_pagination_next": "Next",
+	"list_pagination_page": "Go to page {n}",
+	"list_sort_aria_label": "Sort by {column}, {direction}",
+	"list_empty": "No data",
+	"list_out_of_range_title": "Page not found",
+	"list_out_of_range_action": "Go to last page ({n})",
+	"list_search_submit": "Search"
 }
