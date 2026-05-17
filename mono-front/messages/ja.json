@@ -67,5 +67,15 @@
 	"app_nav_users": "ユーザー",
 	"app_action_back_to_top": "トップへ戻る",
 	"app_action_back_to_users": "ユーザー一覧へ戻る",
-	"app_action_retry": "再試行"
+	"app_action_retry": "再試行",
+
+	"list_pagination_nav": "ページネーション",
+	"list_pagination_previous": "前へ",
+	"list_pagination_next": "次へ",
+	"list_pagination_page": "{n}ページ目",
+	"list_sort_aria_label": "{column} を {direction} でソート",
+	"list_empty": "該当データがありません",
+	"list_out_of_range_title": "該当ページなし",
+	"list_out_of_range_action": "最終ページ ({n}) へ移動",
+	"list_search_submit": "検索"
 }
