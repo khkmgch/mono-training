@@ -19,7 +19,7 @@
 
 {#if fieldError !== undefined}
 	<small role="alert" id="{name}-error" class="form-field-error">
-		<span class="visually-hidden">{m.common_a11y_error_prefix()}</span>
+		<span class="sr-only">{m.common_a11y_error_prefix()}</span>
 		{fieldError.message}
 	</small>
 {/if}
@@ -27,19 +27,7 @@
 <style>
 	.form-field-error {
 		display: block;
-		color: var(--pico-color-red-600, #dc2626);
+		color: var(--ds-color-error);
 		margin-top: 0.25rem;
-	}
-
-	.visually-hidden {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
 	}
 </style>

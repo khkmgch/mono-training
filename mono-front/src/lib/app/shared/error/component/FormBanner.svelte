@@ -50,7 +50,7 @@
 
 <style>
 	.form-banner {
-		border-left: 4px solid var(--pico-color-red-600, #dc2626);
+		border-left: 4px solid var(--ds-color-error);
 	}
 
 	.form-banner ul {

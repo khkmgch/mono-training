@@ -43,13 +43,7 @@
 <label class="backend-toggle">
 	<span class="sr-only">{m.shared_backend_toggle_label()}</span>
 	<span class="backend-toggle-control">
-		<span
-			class="backend-toggle-dot"
-			style:background-color={current === 'quarkus'
-				? 'var(--ds-backend-quarkus-dot)'
-				: 'var(--ds-backend-jsonserver-dot)'}
-			aria-hidden="true"
-		></span>
+		<span class="backend-toggle-dot" data-target={current} aria-hidden="true"></span>
 		<select value={current} onchange={handleChange}>
 			<option value="json-server">{m.shared_backend_target_json_server()}</option>
 			<option value="quarkus">{m.shared_backend_target_quarkus()}</option>
@@ -76,6 +70,17 @@
 		width: 0.5rem;
 		height: 0.5rem;
 		border-radius: 50%;
+	}
+
+	/* Dev-mode environment indicator. These colors are component-private
+	 * (single consumer), so they live here rather than in the global token
+	 * layer. pico v2 ships no named palette vars — literal fallbacks apply. */
+	.backend-toggle-dot[data-target='quarkus'] {
+		background-color: var(--pico-color-jade-500, #10b981);
+	}
+
+	.backend-toggle-dot[data-target='json-server'] {
+		background-color: var(--pico-color-amber-400, #fbbf24);
 	}
 
 	/* Compact header-fit (~36 px vs pico's ~50 px). Scope-overriding pico's
