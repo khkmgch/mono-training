@@ -11,3 +11,7 @@ bun.lockb
 # Tool-managed (generated / configured by inlang/paraglide-js)
 src/lib/paraglide/
 project.inlang/
+
+# Tool-managed (json-server v1 rewrites this on every PUT/PATCH/POST/DELETE,
+# so enforcing prettier formatting is futile)
+db.json
