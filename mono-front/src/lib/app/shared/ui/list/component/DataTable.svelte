@@ -7,7 +7,11 @@
 	import { Table, type Column } from '$lib/core/table';
 
 	import { getListContext } from '../context';
-	import { DEFAULT_PAGINATION_LABELS, defaultSortAriaLabel } from '../default-labels';
+	import {
+		DEFAULT_PAGINATION_LABELS,
+		defaultSortAriaLabel,
+		formatPaginationSummary
+	} from '../default-labels';
 	import type { OutOfRangeSnippetContext, SearchParamsSchema } from '../types';
 	import DefaultEmpty from './DefaultEmpty.svelte';
 	import DefaultOutOfRange from './DefaultOutOfRange.svelte';
@@ -72,11 +76,18 @@
 	const resolvedLabels = $derived(labels ?? DEFAULT_PAGINATION_LABELS);
 	const resolvedSortAriaLabel = $derived(sortAriaLabel ?? defaultSortAriaLabel);
 
-	// Navigate factories built once per binding — see `createNavigate` JSDoc
-	// "Call this factory once at the consumer's `<script>` top-level and reuse
-	// the returned function for stable DOM listener identity".
+	// Build navigate factories once per binding (stable listener identity).
 	const navigatePush = $derived(ctx.binding.createNavigate());
 	const navigateReplace = $derived(ctx.binding.createNavigate({ replace: true }));
+
+	// 1-based display counts for the pagination summary. The visible row count
+	// can be smaller than `result.size` on the last page, so `summaryEnd` reads
+	// from `result.items.length` and clamps to `totalCount`.
+	const summaryStart = $derived(effectivePage * result.size + 1);
+	const summaryEnd = $derived(
+		Math.min(effectivePage * result.size + result.items.length, totalCount)
+	);
+	const showSummary = $derived(totalCount > 0 && !isOutOfRange && result.items.length > 0);
 
 	const hasActiveSearchParams = $derived.by(() => {
 		if (query.q !== undefined && query.q !== '') return true;
@@ -91,16 +102,20 @@
 		return false;
 	});
 
+	// Spread `query` into every navigation: `toUrlSearchParams` rebuilds owned
+	// keys from its argument and drops anything missing, so passing only the
+	// changed field would silently wipe active filters.
 	function outOfRangeNavigate(nextPage: number): void {
-		navigateReplace({ page: nextPage });
+		navigateReplace({ ...query, page: nextPage });
 	}
 
+	// Sort change resets to page 0 (new ordering starts at the top).
 	function handleSortChange(next: readonly SortState[]): void {
-		navigatePush({ sort: next });
+		navigatePush({ ...query, sort: next, page: 0 });
 	}
 
 	function handlePageChange(next: number): void {
-		navigatePush({ page: next });
+		navigatePush({ ...query, page: next });
 	}
 
 	function buildOutOfRangeContext(): OutOfRangeSnippetContext {
@@ -176,20 +191,72 @@
 	{/if}
 
 	{#if totalCount > 0}
-		<Pagination
-			page={effectivePage}
-			{totalPages}
-			onPageChange={handlePageChange}
-			labels={resolvedLabels}
-			disabled={resolvedLoading}
-		/>
+		<footer class="ds-datatable-footer">
+			{#if showSummary}
+				<p class="ds-datatable-summary">
+					{formatPaginationSummary({
+						start: summaryStart,
+						end: summaryEnd,
+						total: totalCount
+					})}
+				</p>
+			{/if}
+			<Pagination
+				page={effectivePage}
+				{totalPages}
+				onPageChange={handlePageChange}
+				labels={resolvedLabels}
+				disabled={resolvedLoading}
+			/>
+		</footer>
 	{/if}
 </div>
 
 <style>
+	/* Adapts to parent height. Constrained parent (inside `.page.list`) →
+	 * internal scroll + sticky footer. Content-driven parent → natural flow
+	 * + inert sticky header. The viewport-bound decision belongs to
+	 * `<Page variant="list">`, not this component. */
 	.ds-datatable {
+		display: grid;
+		grid-template-rows: 1fr auto;
+		min-height: 0;
+	}
+
+	/* Promote core's wrapper to the single vertical scroll container (it only
+	 * declares overflow-x). `min-height: 0` lets the `1fr` row shrink so it
+	 * scrolls instead of pushing the page. */
+	.ds-datatable :global(.ds-table-wrapper) {
+		min-height: 0;
+		overflow: auto;
+	}
+
+	/* Sticky on each `<th>` (not `<thead>`): pico's `border-collapse: collapse`
+	 * makes the spec ignore sticky on `<thead>` / `<tr>`. Inset shadow re-paints
+	 * the bottom border that collapse clips from sticky cells on scroll. */
+	.ds-datatable :global(.ds-table-wrapper thead th) {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		background: var(--ds-surface-page);
+		box-shadow: inset 0 -1px 0 var(--ds-border-strong);
+	}
+
+	.ds-datatable-footer {
 		display: flex;
-		flex-direction: column;
-		gap: 1rem;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--ds-space-3);
+		margin: 0;
+		padding-top: var(--ds-space-3);
+		border-top: 1px solid var(--ds-border-subtle);
+		background-color: var(--ds-surface-page);
+	}
+
+	.ds-datatable-summary {
+		margin: 0;
+		color: var(--ds-text-muted);
+		font-size: var(--ds-fs-small);
 	}
 </style>

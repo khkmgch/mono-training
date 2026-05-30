@@ -105,7 +105,6 @@ describe('createSubmitHandler', () => {
 			expect(input.formElement.requestSubmit).toHaveBeenCalledOnce();
 			expect(result).toBeUndefined();
 
-			// 2nd pass uses the same handler closure with confirmed === true
 			const second = await handler(buildInput({ formElement: input.formElement }));
 			expect(typeof second).toBe('function');
 		});
@@ -131,7 +130,6 @@ describe('createSubmitHandler', () => {
 			expect(typeof secondPass).toBe('function');
 			await (secondPass as ResultCallback)(callbackArgs({ type: 'success', status: 200 }));
 
-			// Subsequent fresh submission should prompt confirmation again
 			await handler(buildInput({ formElement }));
 			expect(confirmAskSpy).toHaveBeenCalledTimes(2);
 		});
@@ -184,7 +182,11 @@ describe('createSubmitHandler', () => {
 			const callback = (await handler(buildInput())) as ResultCallback;
 			const update = vi.fn(async () => {});
 			await callback(callbackArgs({ type: 'success', status: 200 }, update));
-			expect(toastPushSpy).toHaveBeenCalledWith({ type: 'success', message: 'saved' });
+			expect(toastPushSpy).toHaveBeenCalledWith({
+				type: 'success',
+				message: 'saved',
+				autoCloseMs: 3000
+			});
 			expect(gotoSpy).toHaveBeenCalledWith('/users');
 		});
 
@@ -195,7 +197,6 @@ describe('createSubmitHandler', () => {
 			const update = vi.fn(async () => {});
 			await callback(callbackArgs({ type: 'success', status: 200, data: { id: 1 } }, update));
 			expect(successFn).toHaveBeenCalledOnce();
-			// Falls back to update() when intent is null
 			expect(update).toHaveBeenCalledOnce();
 			expect(toastPushSpy).not.toHaveBeenCalled();
 		});
@@ -209,7 +210,11 @@ describe('createSubmitHandler', () => {
 			});
 			const callback = (await handler(buildInput())) as ResultCallback;
 			await callback(callbackArgs({ type: 'success', status: 200, data: { deleted: true } }));
-			expect(toastPushSpy).toHaveBeenCalledWith({ type: 'success', message: 'deleted' });
+			expect(toastPushSpy).toHaveBeenCalledWith({
+				type: 'success',
+				message: 'deleted',
+				autoCloseMs: 3000
+			});
 			expect(gotoSpy).toHaveBeenCalledWith('/users');
 		});
 	});

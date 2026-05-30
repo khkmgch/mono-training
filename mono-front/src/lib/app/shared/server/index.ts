@@ -9,6 +9,11 @@
  *   and a server `handle` hook that populates it. The wrappers read this value
  *   to construct the per-request HTTP client; absence is a compile-time error.
  *   Per-call `options.http.baseURL` overrides it.
+ *
+ * @remarks To narrow `event.params` per route without annotating every
+ *   handler, use {@link routeServer} with the `PageServerLoadEvent` /
+ *   `RequestEvent` types from `./$types`. The bare `defineLoad` /
+ *   `defineActions` exports use the broad event types and remain available.
  */
 
 export type {
@@ -22,3 +27,5 @@ export type {
 } from './types';
 export { defineLoad } from './define-load';
 export { defineActions } from './define-actions';
+export { routeServer, type RouteServer } from './route-server';
+export { getString, getNumber } from './form-data';

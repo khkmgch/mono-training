@@ -88,7 +88,7 @@
 
 <style>
 	dialog {
-		z-index: var(--z-confirm-dialog, 300);
+		z-index: var(--ds-z-confirm-dialog);
 		max-width: min(480px, calc(100vw - 2rem));
 		padding: 0;
 		border: 0;
@@ -97,6 +97,7 @@
 
 	.confirm-card {
 		margin: 0;
+		box-shadow: var(--ds-elevation-dialog);
 	}
 
 	.confirm-detail {

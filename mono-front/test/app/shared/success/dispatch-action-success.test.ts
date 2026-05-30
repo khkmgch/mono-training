@@ -52,13 +52,30 @@ describe('dispatchActionSuccess', () => {
 		vi.clearAllMocks();
 	});
 
-	it('pushes a toast when intent.toast is set', async () => {
+	it('pushes a toast when intent.toast is set, defaulting autoCloseMs to 3000', async () => {
 		const ctx = buildContext();
 		await dispatchActionSuccess(
 			{ toast: { message: 'saved' } },
 			{ toasts: ctx.toasts, update: ctx.update }
 		);
-		expect(ctx.pushSpy).toHaveBeenCalledWith({ type: 'success', message: 'saved' });
+		expect(ctx.pushSpy).toHaveBeenCalledWith({
+			type: 'success',
+			message: 'saved',
+			autoCloseMs: 3000
+		});
+	});
+
+	it('preserves explicit autoCloseMs (including 0 = sticky)', async () => {
+		const ctx = buildContext();
+		await dispatchActionSuccess(
+			{ toast: { message: 'sticky', autoCloseMs: 0 } },
+			{ toasts: ctx.toasts, update: ctx.update }
+		);
+		expect(ctx.pushSpy).toHaveBeenCalledWith({
+			type: 'success',
+			message: 'sticky',
+			autoCloseMs: 0
+		});
 	});
 
 	it('omits toast push when intent.toast is undefined', async () => {
@@ -67,16 +84,16 @@ describe('dispatchActionSuccess', () => {
 		expect(ctx.pushSpy).not.toHaveBeenCalled();
 	});
 
-	it('defaults to invalidateAll: true when invalidate is omitted', async () => {
+	it('defaults to invalidateAll: true and reset: false when both omitted', async () => {
 		const ctx = buildContext();
 		await dispatchActionSuccess({}, { toasts: ctx.toasts, update: ctx.update });
-		expect(ctx.update).toHaveBeenCalledWith({ reset: true, invalidateAll: true });
+		expect(ctx.update).toHaveBeenCalledWith({ reset: false, invalidateAll: true });
 	});
 
 	it('respects invalidate: "none" with invalidateAll: false', async () => {
 		const ctx = buildContext();
 		await dispatchActionSuccess({ invalidate: 'none' }, { toasts: ctx.toasts, update: ctx.update });
-		expect(ctx.update).toHaveBeenCalledWith({ reset: true, invalidateAll: false });
+		expect(ctx.update).toHaveBeenCalledWith({ reset: false, invalidateAll: false });
 		expect(invalidateSpy).not.toHaveBeenCalled();
 	});
 
@@ -86,7 +103,7 @@ describe('dispatchActionSuccess', () => {
 			{ invalidate: '/users' },
 			{ toasts: ctx.toasts, update: ctx.update }
 		);
-		expect(ctx.update).toHaveBeenCalledWith({ reset: true, invalidateAll: false });
+		expect(ctx.update).toHaveBeenCalledWith({ reset: false, invalidateAll: false });
 		expect(invalidateSpy).toHaveBeenCalledWith('/users');
 	});
 
@@ -116,10 +133,10 @@ describe('dispatchActionSuccess', () => {
 		expect(gotoSpy).toHaveBeenCalledWith('/users/1');
 	});
 
-	it('passes resetForm: false through to update', async () => {
+	it('passes resetForm: true through to update (explicit opt-in)', async () => {
 		const ctx = buildContext();
-		await dispatchActionSuccess({ resetForm: false }, { toasts: ctx.toasts, update: ctx.update });
-		expect(ctx.update).toHaveBeenCalledWith({ reset: false, invalidateAll: true });
+		await dispatchActionSuccess({ resetForm: true }, { toasts: ctx.toasts, update: ctx.update });
+		expect(ctx.update).toHaveBeenCalledWith({ reset: true, invalidateAll: true });
 	});
 
 	it('runs in order: toast push -> update -> invalidate -> goto', async () => {
@@ -134,18 +151,22 @@ describe('dispatchActionSuccess', () => {
 		);
 		expect(ctx.calls).toEqual([
 			'push:success:done',
-			'update:false:true',
+			'update:false:false',
 			'invalidate:str:/users',
 			'goto:/users/1'
 		]);
 	});
 
-	it('passes info toast type through unchanged', async () => {
+	it('passes info toast type through unchanged (autoCloseMs default still applies)', async () => {
 		const ctx = buildContext();
 		await dispatchActionSuccess(
 			{ toast: { type: 'info', message: 'hi' } },
 			{ toasts: ctx.toasts, update: ctx.update }
 		);
-		expect(ctx.pushSpy).toHaveBeenCalledWith({ type: 'info', message: 'hi' });
+		expect(ctx.pushSpy).toHaveBeenCalledWith({
+			type: 'info',
+			message: 'hi',
+			autoCloseMs: 3000
+		});
 	});
 });

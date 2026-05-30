@@ -43,6 +43,13 @@
 		loadingSnippet?: Snippet<[]>;
 		/** Opt-in: Shift+click adds/cycles a sort entry. Plain click still single-resets. */
 		multiSort?: boolean;
+		/**
+		 * Auto-populate `title` on truncated cells (and clear it when not), so
+		 * users see the full text on hover. Set to `false` when the consumer
+		 * renders its own tooltip mechanism or never truncates.
+		 * @default true
+		 */
+		tooltip?: boolean;
 	};
 
 	let {
@@ -60,7 +67,8 @@
 		empty,
 		noMatch,
 		loadingSnippet,
-		multiSort = false
+		multiSort = false,
+		tooltip = true
 	}: Props = $props();
 
 	const hasAnyWidth = $derived(columns.some((c) => c.width !== undefined));
@@ -113,14 +121,49 @@
 				);
 			}
 		}
-		// Duplicate `column.id` is enforced by Svelte's `{#each ... (key)}` runtime
-		// invariant — it throws `each_key_duplicate` in dev mode before `$effect`
-		// runs, so we don't re-implement the check here.
+		// Duplicate column.id is caught by Svelte's {#each (key)} runtime — no extra check needed.
+	});
+
+	let tableEl: HTMLTableElement | undefined = $state(undefined);
+
+	// One ResizeObserver per table (not per cell) keeps observers O(1). The
+	// reconcile pass is split read-all → write-all so layout is forced at most
+	// once per resize regardless of cell count.
+	$effect(() => {
+		if (!tooltip || tableEl === undefined) return;
+		const table = tableEl;
+		// Touch rows/columns so the effect re-runs (and re-reconciles) when data changes, not only on resize.
+		void rows;
+		void columns;
+
+		const reconcile = (): void => {
+			const tds = table.querySelectorAll<HTMLTableCellElement>('tbody td');
+			const overflows = new Array<boolean>(tds.length);
+			for (let i = 0; i < tds.length; i++) {
+				overflows[i] = tds[i].scrollWidth > tds[i].clientWidth;
+			}
+			for (let i = 0; i < tds.length; i++) {
+				const td = tds[i];
+				const text = td.textContent ?? '';
+				// Skip empty cells — an empty tooltip is meaningless.
+				if (overflows[i] && text !== '') {
+					if (td.title !== text) td.title = text;
+				} else if (td.hasAttribute('title')) {
+					td.removeAttribute('title');
+				}
+			}
+		};
+
+		reconcile();
+		const observer = new ResizeObserver(reconcile);
+		observer.observe(table);
+		return () => observer.disconnect();
 	});
 </script>
 
 <div class="ds-table-wrapper">
 	<table
+		bind:this={tableEl}
 		aria-busy={loading}
 		aria-label={ariaLabel}
 		class:fixed={hasAnyWidth}

@@ -23,25 +23,10 @@
 		noMatch?: Snippet<[]>;
 		loadingSnippet?: Snippet<[]>;
 		multiSort?: boolean;
+		tooltip?: boolean;
 	};
 
 	let p: Props = $props();
 </script>
 
-<Table
-	rows={p.rows}
-	columns={p.columns}
-	getRowKey={p.getRowKey}
-	sort={p.sort}
-	onSortChange={p.onSortChange}
-	loading={p.loading}
-	caption={p.caption}
-	ariaLabel={p.ariaLabel}
-	striped={p.striped}
-	wrap={p.wrap}
-	sortAriaLabel={p.sortAriaLabel}
-	empty={p.empty}
-	noMatch={p.noMatch}
-	loadingSnippet={p.loadingSnippet}
-	multiSort={p.multiSort}
-/>
+<Table {...p} />

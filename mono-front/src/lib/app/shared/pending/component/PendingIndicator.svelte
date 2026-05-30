@@ -35,7 +35,7 @@
 		margin: 0;
 		border: 0;
 		border-radius: 0;
-		z-index: var(--z-pending-indicator, 100);
+		z-index: var(--ds-z-pending-indicator);
 		visibility: hidden;
 		pointer-events: none;
 	}

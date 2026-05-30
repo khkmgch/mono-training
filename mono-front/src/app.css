@@ -1,1 +1,195 @@
-/* Override Pico CSS variables here. */
+/* =========================================================================
+ * Design tokens — Quiet Precision (refined minimalism + industrial).
+ *
+ * Tokens prefixed with `--ds-*` are the only values the rest of the codebase
+ * should reference (or pico variables `--pico-*` when they suit a context
+ * better, e.g. `--pico-border-radius`).
+ *
+ * Light/dark mode follows pico's automatic switching — `--ds-*` color tokens
+ * resolve through pico variables, so dark mode inherits without extra work.
+ * ========================================================================= */
+
+:root {
+	/* ---------- Typography (system-ui stack via pico; "designer" fonts read as AI-generated) ---------- */
+	--ds-fs-h1: 1.5rem;
+	--ds-fs-small: 0.875rem;
+	--ds-fs-meta: 0.8125rem;
+
+	--ds-lh-tight: 1.25;
+
+	/* ---------- Spacing (4px base) ---------- */
+	--ds-space-1: 0.25rem;
+	--ds-space-2: 0.5rem;
+	--ds-space-3: 0.75rem;
+	--ds-space-4: 1rem;
+	--ds-space-6: 1.5rem;
+
+	/* ---------- Color: brand accent (pico azure) ---------- */
+	--ds-color-accent: var(--pico-primary);
+	--ds-color-accent-focus: var(--pico-primary-focus);
+
+	/* ---------- Color: semantic (single source of truth for status colors) ----------
+	 * Pico v2 main CSS does NOT define the `--pico-color-<hue>-NNN` palette
+	 * (only its accent + form-state colors), so we resolve to literal
+	 * fallbacks. The var() reference is kept in case a future pico release
+	 * (or an explicitly imported palette extension) defines them — at which
+	 * point the fallback becomes inert.
+	 *
+	 * Values follow Tailwind's palette so the tokens read consistently with
+	 * the rest of the design vocabulary (red-600, etc.). */
+	--ds-color-success: var(--pico-color-green-600, #16a34a);
+	--ds-color-error: var(--pico-color-red-600, #dc2626);
+	--ds-color-warning: var(--pico-color-amber-600, #d97706);
+	--ds-color-info: var(--pico-color-blue-600, #2563eb);
+
+	/* ---------- Surface ---------- */
+	--ds-surface-page: var(--pico-background-color);
+	--ds-surface-card: var(--pico-card-background-color);
+	--ds-surface-section: var(--pico-card-sectioning-background-color);
+	--ds-surface-hover: color-mix(in srgb, var(--pico-color) 4%, transparent);
+
+	/* ---------- Borders ---------- */
+	--ds-border-subtle: var(--pico-muted-border-color);
+	--ds-border-strong: var(--pico-form-element-border-color);
+
+	/* ---------- Text ---------- */
+	--ds-text-primary: var(--pico-color);
+	--ds-text-muted: var(--pico-muted-color);
+
+	/* ---------- Layout ---------- */
+	--ds-layout-max-w: 1280px;
+	--ds-layout-detail-max-w: 640px;
+	--ds-header-h: 3.5rem;
+	--ds-sidebar-w: 14rem;
+
+	/* ---------- Elevation (border-first; shadow reserved for overlays) ---------- */
+	--ds-elevation-toast: 0 2px 12px rgba(0, 0, 0, 0.18);
+	--ds-elevation-dialog: 0 12px 32px rgba(0, 0, 0, 0.25);
+
+	/* ---------- Motion (intentionally restrained) ---------- */
+	--ds-duration-fast: 120ms;
+	--ds-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* ---------- Z-index stack (header below overlays) ---------- */
+	--ds-z-header: 50;
+	--ds-z-pending-indicator: 100;
+	--ds-z-toaster: 200;
+	--ds-z-confirm-dialog: 300;
+}
+
+/* =========================================================================
+ * Global resets that depend on `--ds-*` values
+ * ========================================================================= */
+
+/* Sticky-header offset for fragment scroll targets (anchor links inside docs). */
+html {
+	scroll-padding-top: calc(var(--ds-header-h) + var(--ds-space-2));
+}
+
+/* =========================================================================
+ * App shell — the outermost wrapper around every route. Layout primitives
+ * for the inside of each page live in their respective components (Page,
+ * PageHeader, Card, etc., under `lib/app/shared/ui/`).
+ * ========================================================================= */
+
+.app-shell {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+.app-main {
+	padding: var(--ds-space-6) 0;
+}
+
+/* List screens: pin shell to dvh + flex chain so the table scrolls
+ * internally. `:has()` scopes this to list pages only — Tutorial and Detail
+ * keep page-level scroll. `100vh` is a fallback for pre-dvh clients. */
+.app-shell:has(.page.list) {
+	height: 100vh;
+	height: 100dvh;
+	overflow: hidden;
+}
+
+.app-shell:has(.page.list) .app-main {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+	/* List screens trade vertical padding for table rows (24px → 16px). */
+	padding-block: var(--ds-space-4);
+}
+
+/* Mobile: drop viewport-bound layout (nested touch scroll is poor UX). All
+ * three layers (shell / main / page) must release the height lock together,
+ * otherwise the inner content is clipped by an ancestor that stays fixed. */
+@media (max-width: 575px) {
+	.app-shell:has(.page.list) {
+		height: auto;
+		overflow: visible;
+	}
+
+	.app-shell:has(.page.list) .app-main {
+		flex: 0 1 auto;
+		overflow: visible;
+	}
+}
+
+/* =========================================================================
+ * Cross-cutting utilities — applied to arbitrary elements regardless of
+ * their owning component, so they live globally rather than in any single
+ * component's scope.
+ * ========================================================================= */
+
+/* Hides an element from sighted users while keeping it in the a11y tree
+ * (e.g. labels that double as a control's accessible name but are visually
+ * redundant). Standard WAI-ARIA APG / Bootstrap / Tailwind sr-only pattern. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Icon-and-label button utility — applied to either `<button>` or
+ * `<a role="button">` so it stays as a class rather than a component. The
+ * `width: auto` overrides pico's `button { width: 100% }` default so the
+ * button sizes to the icon + label pair instead of stretching. */
+.btn-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--ds-space-2);
+	width: auto;
+	/* Equal width across icon buttons regardless of label glyph width or
+	 * element padding. 6rem is tuned to JA labels ("作成" / "検索"). */
+	min-width: 6rem;
+	white-space: nowrap;
+}
+
+/* Cancel-style text link applied to `<a role="button">` wherever a low-
+ * emphasis secondary action sits next to a primary button (Cancel in
+ * forms, Clear in search). Drops the pico button background so primary
+ * actions visually dominate; small padding keeps the touch target above
+ * WCAG 2.5.8 (AA) 24 × 24 px on mobile. */
+a.link-button {
+	padding: var(--ds-space-1) var(--ds-space-2);
+	color: var(--ds-text-muted);
+	background: none;
+	border: none;
+	text-decoration: none;
+}
+
+a.link-button:hover {
+	color: var(--ds-text-primary);
+	text-decoration: underline;
+}
+
+a.link-button:focus-visible {
+	outline: 2px solid var(--ds-color-accent-focus);
+	outline-offset: 2px;
+}

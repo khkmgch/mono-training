@@ -31,7 +31,7 @@
 		position: fixed;
 		top: 1rem;
 		right: 1rem;
-		z-index: var(--z-toaster, 200);
+		z-index: var(--ds-z-toaster);
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
@@ -47,20 +47,20 @@
 		margin: 0;
 		padding: 0.75rem 1rem;
 		background-color: var(--pico-card-background-color, white);
-		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+		box-shadow: var(--ds-elevation-toast);
 		pointer-events: auto;
 	}
 
 	.toast-success {
-		border-left: 4px solid var(--pico-color-green-500, #16a34a);
+		border-left: 4px solid var(--ds-color-success);
 	}
 
 	.toast-error {
-		border-left: 4px solid var(--pico-color-red-600, #dc2626);
+		border-left: 4px solid var(--ds-color-error);
 	}
 
 	.toast-info {
-		border-left: 4px solid var(--pico-color-blue-500, #2563eb);
+		border-left: 4px solid var(--ds-color-info);
 	}
 
 	.toast-message {

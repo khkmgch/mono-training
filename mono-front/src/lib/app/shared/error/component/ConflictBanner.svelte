@@ -29,6 +29,6 @@
 
 <style>
 	.conflict-banner {
-		border-left: 4px solid var(--pico-color-amber-500, #d97706);
+		border-left: 4px solid var(--ds-color-warning);
 	}
 </style>
