@@ -83,7 +83,13 @@
 	}
 
 	.ds-pagination button[aria-current='page'] {
+		/* Pico resets --pico-color to --pico-primary-inverse (#fff) on buttons
+		 * for the blue-fill default. Our transparent fill leaves white text on
+		 * the page bg (invisible). Re-inherit --pico-color so design tokens
+		 * resolve to the page-level text color instead. */
+		--pico-color: inherit;
 		background: var(--ds-pagination-current-bg, transparent);
+		color: var(--ds-text-primary);
 		font-weight: 600;
 	}
 
