@@ -1,9 +1,10 @@
 <script lang="ts" generics="S extends SearchParamsSchema">
 	import type { Snippet } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
+	import { SvelteSet, SvelteURL, SvelteURLSearchParams } from 'svelte/reactivity';
 	import { page as pageState } from '$app/state';
 
 	import { getListContext } from '../context';
+	import { pushNavigate } from '../navigate-helpers';
 	import type { SearchControlsContext, SearchParamsSchema } from '../types';
 
 	type Props = {
@@ -51,11 +52,8 @@
 		}
 	});
 
-	// DOM scan after mount — pick up the `name` of every visible form input the
-	// searchControls Snippet renders. The selector excludes `type="hidden"` so the
-	// SearchForm's own preserved-key hidden inputs (rendered below) are not folded
-	// back into `formFieldNames`. Snippets are black boxes from Svelte's view, so
-	// we have to read the DOM once formEl is bound.
+	// Snippets are opaque to Svelte, so scan the DOM to learn rendered field names.
+	// Exclude type=hidden to skip our own preserved-key inputs (rendered below).
 	$effect(() => {
 		if (formEl === undefined) return;
 		formFieldNames.clear();
@@ -80,11 +78,26 @@
 		}
 		return entries;
 	});
+
+	// Drop empty fields so the URL stays canonical (`/users`, not
+	// `/users?loginId=&fullName=`). JS-disabled clients fall back to the
+	// native GET; the server parser treats empty strings as "no filter".
+	function handleSubmit(event: SubmitEvent): void {
+		event.preventDefault();
+		if (formEl === undefined) return;
+		const params = new SvelteURLSearchParams();
+		for (const [key, value] of new FormData(formEl)) {
+			if (typeof value === 'string' && value !== '') params.append(key, value);
+		}
+		const url = new SvelteURL(pageState.url);
+		url.search = params.toString();
+		pushNavigate(url);
+	}
 </script>
 
 {#if searchElement === 'search'}
 	<search aria-label={ariaLabel} aria-labelledby={ariaLabelledBy}>
-		<form bind:this={formEl} method="GET">
+		<form bind:this={formEl} method="GET" onsubmit={handleSubmit}>
 			{@render searchControls(ctx)}
 			{#each hiddenEntries as entry, i (`${entry.key}-${i}`)}
 				<input type="hidden" name={entry.key} value={entry.value} />
@@ -93,7 +106,7 @@
 	</search>
 {:else}
 	<div role="search" aria-label={ariaLabel} aria-labelledby={ariaLabelledBy}>
-		<form bind:this={formEl} method="GET">
+		<form bind:this={formEl} method="GET" onsubmit={handleSubmit}>
 			{@render searchControls(ctx)}
 			{#each hiddenEntries as entry, i (`${entry.key}-${i}`)}
 				<input type="hidden" name={entry.key} value={entry.value} />

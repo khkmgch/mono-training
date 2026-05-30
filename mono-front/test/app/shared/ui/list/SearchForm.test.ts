@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/svelte';
+import { render, fireEvent } from '@testing-library/svelte';
 import { createRawSnippet, type Snippet } from 'svelte';
 import type { SearchControlsContext } from '$lib/app/shared/ui/list';
 import type { FixtureSchema } from './fixture/ProviderWithSearchForm.svelte';
@@ -62,7 +62,6 @@ function searchControlsSnippet(html: string): Snippet<[SearchControlsContext<Fix
 	}));
 }
 
-// createRawSnippet requires a single root element — wrap in a <div> for the test.
 const minimalControls = searchControlsSnippet(
 	'<div><input name="q" /><input name="status" /><button type="submit">Search</button></div>'
 );
@@ -79,8 +78,7 @@ describe('SearchForm', () => {
 	describe('ListProvider scope', () => {
 		it('throws when rendered outside any <ListProvider>', () => {
 			// Generic SearchForm widens to S=SearchParamsSchema when rendered directly via
-			// @testing-library/svelte; cast through `never` so the type checker stays out
-			// of the way. We only assert the runtime throw.
+			// @testing-library/svelte; cast through `never` so the type checker stays out of the way.
 			expect(() =>
 				render(SearchForm, {
 					props: {
@@ -240,15 +238,12 @@ describe('SearchForm', () => {
 				hiddenMap.set(i.name, list);
 			});
 
-			// Preserved (URL key, not in form fields, not in resetOnSubmitKeys)
 			expect(hiddenMap.get('size')).toEqual(['50']);
 			expect(hiddenMap.get('sort')).toEqual(['name,asc']);
 			expect(hiddenMap.get('theme')).toEqual(['dark']);
 
-			// Dropped (page is in resetOnSubmitKeys default)
 			expect(hiddenMap.has('page')).toBe(false);
 
-			// Dropped from hidden (q / status are form fields — the form data overrides)
 			expect(hiddenMap.has('q')).toBe(false);
 			expect(hiddenMap.has('status')).toBe(false);
 		});
@@ -298,6 +293,49 @@ describe('SearchForm', () => {
 			expect(hidden).not.toContain('page');
 			expect(hidden).not.toContain('sort');
 			expect(hidden).toContain('size');
+		});
+	});
+
+	describe('submit (canonical URL — empty params dropped)', () => {
+		it('drops empty fields and skips navigation when the result equals the current URL', async () => {
+			mocks.setUrl(new URL('https://example.test/users'));
+			const query = baseBinding.parse(mocks.readUrl());
+			const result = { items: [], page: 0, size: 20, totalCount: 0, totalPages: 0 };
+			const { container } = render(ProviderWithSearchForm, {
+				props: {
+					binding: baseBinding,
+					query,
+					result,
+					'aria-label': 'Search',
+					searchControls: minimalControls
+				}
+			});
+			const form = container.querySelector('form');
+			await fireEvent.submit(form!);
+			expect(mocks.goto).not.toHaveBeenCalled();
+		});
+
+		it('navigates with only the non-empty fields (empty ones dropped)', async () => {
+			mocks.setUrl(new URL('https://example.test/users'));
+			const query = baseBinding.parse(mocks.readUrl());
+			const result = { items: [], page: 0, size: 20, totalCount: 0, totalPages: 0 };
+			const { container } = render(ProviderWithSearchForm, {
+				props: {
+					binding: baseBinding,
+					query,
+					result,
+					'aria-label': 'Search',
+					searchControls: minimalControls
+				}
+			});
+			const statusInput = container.querySelector('input[name="status"]') as HTMLInputElement;
+			statusInput.value = 'active';
+			const form = container.querySelector('form');
+			await fireEvent.submit(form!);
+			expect(mocks.goto).toHaveBeenCalledOnce();
+			const navigated = mocks.goto.mock.calls[0][0] as URL;
+			expect(navigated.searchParams.get('status')).toBe('active');
+			expect(navigated.searchParams.has('q')).toBe(false);
 		});
 	});
 });
