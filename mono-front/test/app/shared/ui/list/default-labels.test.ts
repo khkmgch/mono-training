@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
 	DEFAULT_PAGINATION_LABELS,
-	defaultSortAriaLabel
+	defaultSortAriaLabel,
+	formatPaginationSummary
 } from '$lib/app/shared/ui/list/default-labels';
 import type { Column } from '$lib/core/table';
 
@@ -30,9 +31,6 @@ describe('DEFAULT_PAGINATION_LABELS', () => {
 	});
 
 	it('re-reads paraglide on every getter access (locale switch friendly)', () => {
-		// We can't easily switch locales mid-test without mocking paraglide,
-		// but we can verify the getter pattern by accessing twice and confirming
-		// both reads succeed (proves the value isn't frozen at module init).
 		const first = DEFAULT_PAGINATION_LABELS.nav;
 		const second = DEFAULT_PAGINATION_LABELS.nav;
 		expect(first).toBe(second);
@@ -56,8 +54,6 @@ describe('defaultSortAriaLabel', () => {
 	});
 
 	it('falls back to id when header is a Snippet and label takes precedence', () => {
-		// When header is a Snippet, label is type-required, so we set label
-		// and verify it is preferred over inspecting the Snippet.
 		const col: Column<Row> = {
 			id: 'name',
 			header: (() => undefined) as unknown as Column<Row>['header'] & object,
@@ -71,5 +67,19 @@ describe('defaultSortAriaLabel', () => {
 	it('uses the paraglide template "Sort by {column}, {direction}" under jsdom en', () => {
 		const col: Column<Row> = { id: 'name', header: '名前' };
 		expect(defaultSortAriaLabel(col, 'asc')).toBe('Sort by 名前, asc');
+	});
+});
+
+describe('formatPaginationSummary', () => {
+	it('formats start, end, total with the paraglide template (en under jsdom)', () => {
+		expect(formatPaginationSummary({ start: 1, end: 20, total: 100 })).toBe('Showing 1–20 of 100');
+	});
+
+	it('handles partial last page (end < start + size - 1)', () => {
+		expect(formatPaginationSummary({ start: 91, end: 96, total: 96 })).toBe('Showing 91–96 of 96');
+	});
+
+	it('handles single-page result (start=1, end=total)', () => {
+		expect(formatPaginationSummary({ start: 1, end: 5, total: 5 })).toBe('Showing 1–5 of 5');
 	});
 });

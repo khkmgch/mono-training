@@ -12,10 +12,6 @@ import type { Column } from '$lib/core/table';
  *   (URL/cookie strategy, or `setLocale({ reload: true })`) propagate to the
  *   next read. paraglide is not Svelte-runes-based; propagation relies on
  *   navigation or explicit reload.
- *
- * @example
- *   <DataTable labels={DEFAULT_PAGINATION_LABELS} ... />
- *   <DataTable labels={{ ...DEFAULT_PAGINATION_LABELS, nav: 'ユーザー一覧' }} ... />
  */
 export const DEFAULT_PAGINATION_LABELS: PaginationLabels = {
 	get nav() {
@@ -37,4 +33,16 @@ export const DEFAULT_PAGINATION_LABELS: PaginationLabels = {
 export function defaultSortAriaLabel<R>(col: Column<R>, dir: SortDirection | 'none'): string {
 	const columnLabel = col.label ?? (typeof col.header === 'string' ? col.header : col.id);
 	return m.list_sort_aria_label({ column: columnLabel, direction: dir });
+}
+
+/**
+ * Pagination summary string ("Showing X–Y of Z"). Counts are 1-based for
+ * display; the caller converts the 0-based internal page index.
+ */
+export function formatPaginationSummary(args: {
+	start: number;
+	end: number;
+	total: number;
+}): string {
+	return m.list_pagination_summary(args);
 }

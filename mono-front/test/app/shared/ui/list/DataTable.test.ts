@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/svelte';
+import { render, fireEvent } from '@testing-library/svelte';
 import { createRawSnippet, type Snippet } from 'svelte';
 import type { PageResult } from '$lib/core/list';
 import type { OutOfRangeSnippetContext } from '$lib/app/shared/ui/list';
@@ -111,8 +111,7 @@ describe('DataTable', () => {
 	describe('ListProvider scope', () => {
 		it('throws when rendered outside any <ListProvider>', () => {
 			// Generic DataTable widens to TRow=unknown when rendered directly via
-			// @testing-library/svelte; cast through `never` so the type checker
-			// stays out of the way. We only assert the runtime throw.
+			// @testing-library/svelte; cast through `never` so the type checker stays out of the way.
 			expect(() =>
 				render(DataTable, {
 					props: {
@@ -313,8 +312,6 @@ describe('DataTable', () => {
 		});
 
 		it('does not call toast on auto-clamp', () => {
-			// The contract: out-of-range UI is the outOfRange Snippet (role="status"),
-			// not a toast. Asserted by the absence of any toast indication in DOM.
 			const result = {
 				items: [],
 				page: 999,
@@ -330,6 +327,10 @@ describe('DataTable', () => {
 		});
 
 		it('passes a replaceState navigate to the outOfRange Snippet', () => {
+			// Out-of-range means the URL actually carries the bad page (?page=999).
+			// Set it so the clamped navigate resolves to a *different* URL — under
+			// the same-URL skip guard, navigating to the current URL is a no-op.
+			mocks.setUrl(new URL('https://example.test/users?page=999'));
 			const result = {
 				items: [],
 				page: 999,
@@ -351,6 +352,109 @@ describe('DataTable', () => {
 			receivedNavigate?.(0);
 			expect(mocks.goto).toHaveBeenCalledOnce();
 			expect(mocks.goto.mock.calls[0][1]).toMatchObject({ replaceState: true });
+		});
+	});
+
+	describe('footer (summary + Pagination)', () => {
+		it('renders <footer class="ds-datatable-footer"> when totalCount > 0', () => {
+			const result = { items: rows, page: 0, size: 20, totalCount: 2, totalPages: 1 };
+			const { container } = render(ProviderWithDataTable, {
+				props: buildFixtureProps({ result })
+			});
+			expect(container.querySelector('footer.ds-datatable-footer')).not.toBeNull();
+		});
+
+		it('does NOT render the footer when totalCount === 0', () => {
+			const result = { items: [], page: 0, size: 20, totalCount: 0, totalPages: 0 };
+			const { container } = render(ProviderWithDataTable, {
+				props: buildFixtureProps({ result })
+			});
+			expect(container.querySelector('footer.ds-datatable-footer')).toBeNull();
+		});
+
+		it('renders Pagination as a child of the footer', () => {
+			const result = { items: rows, page: 0, size: 20, totalCount: 2, totalPages: 1 };
+			const { container } = render(ProviderWithDataTable, {
+				props: buildFixtureProps({ result })
+			});
+			const nav = container.querySelector('footer.ds-datatable-footer nav');
+			expect(nav).not.toBeNull();
+		});
+
+		describe('summary', () => {
+			it('renders the paraglide-formatted summary on the first page', () => {
+				const result = { items: rows, page: 0, size: 20, totalCount: 2, totalPages: 1 };
+				const { container } = render(ProviderWithDataTable, {
+					props: buildFixtureProps({ result })
+				});
+				const summary = container.querySelector('.ds-datatable-summary');
+				expect(summary?.textContent?.trim()).toBe('Showing 1–2 of 2');
+			});
+
+			it('renders the summary with the correct 1-based range on page 2 of a full page', () => {
+				const fullPageRows = Array.from({ length: 20 }, (_, i) => ({
+					id: String(i + 21),
+					name: `Row ${i + 21}`
+				}));
+				const result = {
+					items: fullPageRows,
+					page: 1,
+					size: 20,
+					totalCount: 50,
+					totalPages: 3
+				};
+				const { container } = render(ProviderWithDataTable, {
+					props: buildFixtureProps({ result })
+				});
+				const summary = container.querySelector('.ds-datatable-summary');
+				expect(summary?.textContent?.trim()).toBe('Showing 21–40 of 50');
+			});
+
+			it('clamps `end` to totalCount on a partial last page', () => {
+				const partialPageRows = Array.from({ length: 10 }, (_, i) => ({
+					id: String(i + 41),
+					name: `Row ${i + 41}`
+				}));
+				const result = {
+					items: partialPageRows,
+					page: 2,
+					size: 20,
+					totalCount: 50,
+					totalPages: 3
+				};
+				const { container } = render(ProviderWithDataTable, {
+					props: buildFixtureProps({ result })
+				});
+				const summary = container.querySelector('.ds-datatable-summary');
+				expect(summary?.textContent?.trim()).toBe('Showing 41–50 of 50');
+			});
+
+			it('hides the summary when isOutOfRange (page beyond totalPages)', () => {
+				const result = {
+					items: [],
+					page: 999,
+					size: 20,
+					totalCount: 50,
+					totalPages: 3
+				};
+				const { container } = render(ProviderWithDataTable, {
+					props: buildFixtureProps({ result })
+				});
+				expect(container.querySelector('.ds-datatable-summary')).toBeNull();
+				expect(container.querySelector('footer.ds-datatable-footer nav')).not.toBeNull();
+			});
+		});
+	});
+
+	describe('layout structure', () => {
+		it('renders core/Table.svelte’s .ds-table-wrapper directly (single scroll context, no extra wrapper)', () => {
+			// Reuse core's .ds-table-wrapper as the scroll container so sticky <th> resolves against it.
+			const result = { items: rows, page: 0, size: 20, totalCount: 2, totalPages: 1 };
+			const { container } = render(ProviderWithDataTable, {
+				props: buildFixtureProps({ result })
+			});
+			expect(container.querySelectorAll('.ds-table-wrapper').length).toBe(1);
+			expect(container.querySelector('.ds-table-wrapper-scroll')).toBeNull();
 		});
 	});
 
@@ -416,6 +520,55 @@ describe('DataTable', () => {
 			for (const btn of navButtons) {
 				expect((btn as HTMLButtonElement).disabled).toBe(true);
 			}
+		});
+	});
+
+	describe('query preservation on navigation', () => {
+		const sortableColumns = [
+			{ id: 'name', header: 'Name', accessor: (r: Row) => r.name, sortable: true }
+		];
+
+		it('preserves search params and sort when paginating (only page changes)', async () => {
+			const filterBinding = createListBinding({ searchParams: { status: 'string' } });
+			mocks.setUrl(new URL('https://example.test/users?status=active&sort=name,asc'));
+			const query = filterBinding.parse(mocks.readUrl());
+			const result = { items: rows, page: 0, size: 20, totalCount: 50, totalPages: 3 };
+			const { container } = render(ProviderWithDataTable, {
+				// `as never`: a searchParams-typed binding doesn't unify with the
+				// fixture's default Record<string, never> generic under
+				// testing-library's render typing (same pattern as the direct
+				// DataTable render in 'ListProvider scope' above).
+				props: { ...buildFixtureProps({ result }), binding: filterBinding, query } as never
+			});
+			const page2 = container.querySelector('nav button[aria-label="Go to page 2"]');
+			await fireEvent.click(page2!);
+			expect(mocks.goto).toHaveBeenCalledOnce();
+			const url = mocks.goto.mock.calls[0][0] as URL;
+			expect(url.searchParams.get('status')).toBe('active');
+			expect(url.searchParams.getAll('sort')).toEqual(['name,asc']);
+			expect(url.searchParams.get('page')).toBe('1');
+		});
+
+		it('preserves filters and resets page to 0 when sorting', async () => {
+			const filterBinding = createListBinding({ searchParams: { status: 'string' } });
+			mocks.setUrl(new URL('https://example.test/users?status=active&page=2'));
+			const query = filterBinding.parse(mocks.readUrl());
+			const result = { items: rows, page: 2, size: 20, totalCount: 50, totalPages: 3 };
+			const { container } = render(ProviderWithDataTable, {
+				props: {
+					...buildFixtureProps({ result }),
+					binding: filterBinding,
+					query,
+					columns: sortableColumns
+				} as never
+			});
+			const sortButton = container.querySelector('thead th button');
+			await fireEvent.click(sortButton!);
+			expect(mocks.goto).toHaveBeenCalledOnce();
+			const url = mocks.goto.mock.calls[0][0] as URL;
+			expect(url.searchParams.get('status')).toBe('active');
+			expect(url.searchParams.has('page')).toBe(false);
+			expect(url.searchParams.getAll('sort')).toEqual(['name,asc']);
 		});
 	});
 });
