@@ -14,3 +14,4 @@ export { default as ErrorPage } from './component/ErrorPage.svelte';
 export { default as FormBanner } from './component/FormBanner.svelte';
 export { default as FormFieldError } from './component/FormFieldError.svelte';
 export { default as ConflictBanner } from './component/ConflictBanner.svelte';
+export { default as FormErrors } from './component/FormErrors.svelte';
