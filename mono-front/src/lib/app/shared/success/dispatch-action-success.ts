@@ -4,19 +4,12 @@ import type { SuccessIntent } from './types';
 
 type InvalidateTarget = string | URL | ((url: URL) => boolean);
 
+/** Default auto-close for success/info toasts when the caller omits `autoCloseMs`. */
+const DEFAULT_SUCCESS_TOAST_AUTO_CLOSE_MS = 3000;
+
 /**
- * Funnel a `result.type === 'success'` ActionResult through toast +
- * invalidate + navigate, in this exact order:
- *
- *   1. push toast (so it is visible during the subsequent reload)
- *   2. `update({ reset, invalidateAll })`
- *   3. additional `invalidate(target)` for string / URL / predicate targets
- *      (skipped when `target` is `'all'` or `'none'`)
- *   4. `goto(navigateTo)` if specified
- *
- * @remarks Defaults are applied at runtime: `invalidate` defaults to `'all'`,
- *   `resetForm` defaults to `true`. Both can be overridden per call.
- *   SSR-safe: form-action callbacks are client-only by SvelteKit contract.
+ * Order is contractual: the toast is pushed before `update()` so it survives the
+ * subsequent reload/navigation.
  */
 export async function dispatchActionSuccess(
 	intent: SuccessIntent,
@@ -26,12 +19,16 @@ export async function dispatchActionSuccess(
 	}
 ): Promise<void> {
 	if (intent.toast !== undefined) {
-		const { type = 'success', ...rest } = intent.toast;
-		ctx.toasts.push({ type, ...rest });
+		const { type = 'success', autoCloseMs, ...rest } = intent.toast;
+		ctx.toasts.push({
+			type,
+			autoCloseMs: autoCloseMs ?? DEFAULT_SUCCESS_TOAST_AUTO_CLOSE_MS,
+			...rest
+		});
 	}
 
 	const target = intent.invalidate ?? 'all';
-	const reset = intent.resetForm ?? true;
+	const reset = intent.resetForm ?? false;
 	await ctx.update({ reset, invalidateAll: target === 'all' });
 
 	if (target !== 'all' && target !== 'none') {

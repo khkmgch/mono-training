@@ -2,20 +2,14 @@ import type { ToastInput } from '../toast';
 
 /**
  * Declarative success outcome consumed by `dispatchActionSuccess` and
- * `createSubmitHandler`'s `success` option.
- *
- * @remarks Default values are applied at runtime (per design 8.5.2):
- * - `invalidate`: `'all'` when omitted
- * - `resetForm`: `true` when omitted
- *
- * The optional shape on `SuccessIntent` is intentionally preserved so callers
- * can build intents incrementally without explicit defaults.
+ * `createSubmitHandler`'s `success` option. Every field is optional; the
+ * runtime default for each is documented on the field below.
  */
 export type SuccessIntent = {
 	/**
-	 * Success notification. When omitted no toast is shown.
-	 * `type` defaults to `'success'`; only `'success'` and `'info'` are allowed
-	 * (errors must not be routed through success flows — see 9.1.2).
+	 * Success notification. When omitted no toast is shown. `type` defaults to
+	 * `'success'`. `autoCloseMs` defaults to 3000; pass `0` to keep the toast
+	 * visible until the user dismisses it.
 	 */
 	toast?: Omit<ToastInput, 'type'> & { type?: 'success' | 'info' };
 
@@ -37,6 +31,10 @@ export type SuccessIntent = {
 	 */
 	invalidate?: 'all' | 'none' | string | URL | ((url: URL) => boolean);
 
-	/** Reset form fields after success. Defaults to `true`. */
+	/**
+	 * Reset form fields after success. Defaults to `false` so user input is
+	 * never silently dropped — opt in to `true` for "create-and-stay" forms
+	 * that should clear after each submission (e.g. bulk-entry workflows).
+	 */
 	resetForm?: boolean;
 };

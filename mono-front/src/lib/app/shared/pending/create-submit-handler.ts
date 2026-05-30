@@ -1,8 +1,8 @@
 import type { ActionResult } from '@sveltejs/kit';
-import { getConfirmContext, type ConfirmIntent } from '../confirmation';
+import { getConfirmContext, type ConfirmIntent, type ConfirmState } from '../confirmation';
 import { focusFirstFieldError } from '../error';
 import { dispatchActionSuccess, type SuccessIntent } from '../success';
-import { getToastContext } from '../toast';
+import { getToastContext, type ToastState } from '../toast';
 import type { PendingSubmitFunction } from './enhance-with-pending';
 
 export type SubmitInput = {
@@ -87,11 +87,25 @@ export type SubmitHandlerOptions = {
 export function createSubmitHandler(options: SubmitHandlerOptions): PendingSubmitFunction {
 	const confirmedState = { confirmed: false };
 
+	/* Capture context references synchronously at handler creation, while we
+	 * are still inside the component initialisation phase. The async callbacks
+	 * below (runConfirmDialog / runSuccess) run AFTER the submit lifecycle
+	 * starts, by which time Svelte has torn down the init phase and a call to
+	 * `getContext()` would throw `lifecycle_outside_component`. */
+	const toasts = getToastContext();
+	const confirmCtx = getConfirmContext();
+
 	return async (input) => {
 		const cancelState = { cancelled: false };
 		const wrappedInput = wrapWithSharedCancel(input, cancelState);
 
-		const proceed = await runPreSubmitGuards(options, wrappedInput, cancelState, confirmedState);
+		const proceed = await runPreSubmitGuards(
+			options,
+			wrappedInput,
+			cancelState,
+			confirmedState,
+			confirmCtx
+		);
 		if (!proceed) return;
 
 		return async (callback) => {
@@ -103,7 +117,7 @@ export function createSubmitHandler(options: SubmitHandlerOptions): PendingSubmi
 				update: callback.update
 			};
 
-			await runResultHandler(options, callback.result, callback.update, opts);
+			await runResultHandler(options, callback.result, callback.update, opts, toasts);
 
 			if (options.onResult !== undefined) {
 				await options.onResult(opts);
@@ -128,7 +142,8 @@ async function runPreSubmitGuards(
 	options: SubmitHandlerOptions,
 	wrappedInput: SubmitInput,
 	cancelState: { cancelled: boolean },
-	confirmedState: { confirmed: boolean }
+	confirmedState: { confirmed: boolean },
+	confirmCtx: ConfirmState
 ): Promise<boolean> {
 	if (options.onSubmit !== undefined) {
 		const result = await options.onSubmit(wrappedInput);
@@ -139,18 +154,19 @@ async function runPreSubmitGuards(
 		confirmedState.confirmed = false;
 		return true;
 	}
-	return await runConfirmDialog(options, wrappedInput, confirmedState);
+	return await runConfirmDialog(options, wrappedInput, confirmedState, confirmCtx);
 }
 
 async function runConfirmDialog(
 	options: SubmitHandlerOptions,
 	wrappedInput: SubmitInput,
-	confirmedState: { confirmed: boolean }
+	confirmedState: { confirmed: boolean },
+	confirmCtx: ConfirmState
 ): Promise<boolean> {
 	const intent = await resolveConfirmIntent(options.confirm, wrappedInput);
 	if (intent === null) return true;
 	wrappedInput.cancel();
-	const answer = await getConfirmContext().ask(intent);
+	const answer = await confirmCtx.ask(intent);
 	if (answer) {
 		confirmedState.confirmed = true;
 		wrappedInput.formElement.requestSubmit(
@@ -173,13 +189,12 @@ async function runResultHandler(
 	options: SubmitHandlerOptions,
 	result: ActionResult,
 	update: SubmitOpts['update'],
-	opts: SubmitOpts
+	opts: SubmitOpts,
+	toasts: ToastState
 ): Promise<void> {
-	// Switching on `result.type` narrows `result` so each branch receives the
-	// concrete discriminated union member without needing a type assertion.
 	switch (result.type) {
 		case 'success':
-			await runSuccess(options, result, update, opts);
+			await runSuccess(options, result, update, opts, toasts);
 			return;
 		case 'failure':
 			await runFailure(options, result, update, opts);
@@ -196,15 +211,13 @@ async function runSuccess(
 	options: SubmitHandlerOptions,
 	result: ActionResult & { type: 'success' },
 	update: SubmitOpts['update'],
-	opts: SubmitOpts
+	opts: SubmitOpts,
+	toasts: ToastState
 ): Promise<void> {
 	const intent =
 		typeof options.success === 'function' ? options.success({ ...opts, result }) : options.success;
 	if (intent !== null && intent !== undefined) {
-		await dispatchActionSuccess(intent, {
-			toasts: getToastContext(),
-			update
-		});
+		await dispatchActionSuccess(intent, { toasts, update });
 	} else {
 		await update();
 	}
