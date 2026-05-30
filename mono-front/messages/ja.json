@@ -2,6 +2,7 @@
 	"example_message": "こんにちは、{username} さん",
 
 	"common_a11y_error_prefix": "エラー: ",
+	"common_a11y_skip_to_main": "メインコンテンツへスキップ",
 
 	"common_validation_required": "{field}は必須です",
 	"common_validation_max_chars": "{field}は{max}文字以内で入力してください",
@@ -62,9 +63,15 @@
 	"shared_backend_toggle_label": "バックエンド",
 	"shared_backend_target_json_server": "json-server (mock)",
 	"shared_backend_target_quarkus": "Quarkus (api)",
+	"shared_backend_region_label": "環境設定",
+	"shared_backend_switched": "{target} に切り替えました",
 
 	"app_nav_home": "ホーム",
+	"app_nav_tutorial": "チュートリアル",
 	"app_nav_users": "ユーザー",
+	"app_nav_primary_label": "プライマリナビゲーション",
+	"app_nav_breadcrumb_label": "パンくず",
+	"app_nav_tutorial_chapters_label": "チュートリアル章",
 	"app_action_back_to_top": "トップへ戻る",
 	"app_action_back_to_users": "ユーザー一覧へ戻る",
 	"app_action_retry": "再試行",
@@ -73,9 +80,31 @@
 	"list_pagination_previous": "前へ",
 	"list_pagination_next": "次へ",
 	"list_pagination_page": "{n}ページ目",
+	"list_pagination_summary": "全 {total} 件中 {start}〜{end} 件目",
 	"list_sort_aria_label": "{column} を {direction} でソート",
 	"list_empty": "該当データがありません",
 	"list_out_of_range_title": "該当ページなし",
 	"list_out_of_range_action": "最終ページ ({n}) へ移動",
-	"list_search_submit": "検索"
+	"list_search_submit": "検索",
+
+	"feature_user_search_title": "ユーザー検索",
+	"feature_user_search_form_label": "ユーザー検索条件",
+	"feature_user_search_label_login_id": "ユーザ ID",
+	"feature_user_search_label_full_name": "ユーザ名",
+	"feature_user_search_table_caption": "ユーザー一覧",
+	"feature_user_search_column_login_id": "ユーザ ID",
+	"feature_user_search_column_full_name": "ユーザ名",
+	"feature_user_search_column_updated_at": "更新日時",
+	"feature_user_search_column_actions": "操作",
+	"feature_user_search_action_detail_for": "{loginId} の詳細を開く",
+	"feature_user_search_action_clear": "クリア",
+
+	"feature_user_detail_label_login_id": "ユーザ ID",
+	"feature_user_detail_label_full_name": "ユーザ名",
+	"feature_user_detail_hint_login_id": "半角英数 64 文字以内",
+	"feature_user_detail_meta_created_at_label": "登録",
+	"feature_user_detail_meta_updated_at_label": "更新",
+	"feature_user_detail_danger_zone_title": "削除",
+	"feature_user_detail_danger_zone_description": "削除すると元に戻せません",
+	"feature_user_detail_delete_confirm_message": "「{loginId}」を削除しますか?"
 }

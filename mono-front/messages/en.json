@@ -2,6 +2,7 @@
 	"example_message": "Hello world {username}",
 
 	"common_a11y_error_prefix": "Error: ",
+	"common_a11y_skip_to_main": "Skip to main content",
 
 	"common_validation_required": "{field} is required",
 	"common_validation_max_chars": "{field} must be {max} characters or fewer",
@@ -62,9 +63,15 @@
 	"shared_backend_toggle_label": "Backend",
 	"shared_backend_target_json_server": "json-server (mock)",
 	"shared_backend_target_quarkus": "Quarkus (api)",
+	"shared_backend_region_label": "Environment",
+	"shared_backend_switched": "Switched to {target}",
 
 	"app_nav_home": "Home",
+	"app_nav_tutorial": "Tutorial",
 	"app_nav_users": "Users",
+	"app_nav_primary_label": "Primary navigation",
+	"app_nav_breadcrumb_label": "Breadcrumb",
+	"app_nav_tutorial_chapters_label": "Tutorial chapters",
 	"app_action_back_to_top": "Back to top",
 	"app_action_back_to_users": "Back to user list",
 	"app_action_retry": "Retry",
@@ -73,9 +80,31 @@
 	"list_pagination_previous": "Previous",
 	"list_pagination_next": "Next",
 	"list_pagination_page": "Go to page {n}",
+	"list_pagination_summary": "Showing {start}–{end} of {total}",
 	"list_sort_aria_label": "Sort by {column}, {direction}",
 	"list_empty": "No data",
 	"list_out_of_range_title": "Page not found",
 	"list_out_of_range_action": "Go to last page ({n})",
-	"list_search_submit": "Search"
+	"list_search_submit": "Search",
+
+	"feature_user_search_title": "Search users",
+	"feature_user_search_form_label": "User search filters",
+	"feature_user_search_label_login_id": "User ID",
+	"feature_user_search_label_full_name": "User name",
+	"feature_user_search_table_caption": "Users",
+	"feature_user_search_column_login_id": "User ID",
+	"feature_user_search_column_full_name": "User name",
+	"feature_user_search_column_updated_at": "Updated at",
+	"feature_user_search_column_actions": "Actions",
+	"feature_user_search_action_detail_for": "Open details for {loginId}",
+	"feature_user_search_action_clear": "Clear",
+
+	"feature_user_detail_label_login_id": "User ID",
+	"feature_user_detail_label_full_name": "User name",
+	"feature_user_detail_hint_login_id": "Up to 64 alphanumeric characters",
+	"feature_user_detail_meta_created_at_label": "Created",
+	"feature_user_detail_meta_updated_at_label": "Updated",
+	"feature_user_detail_danger_zone_title": "Delete",
+	"feature_user_detail_danger_zone_description": "This action cannot be undone",
+	"feature_user_detail_delete_confirm_message": "Delete \"{loginId}\"?"
 }
