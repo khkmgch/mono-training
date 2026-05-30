@@ -8,13 +8,23 @@ import { dispatchActionError } from '../error';
 import { createAppHttpClient } from '../http';
 import type { ActionContext, ActionHandler, DefineActionsOptions } from './types';
 
-type ActionResult<H extends ActionHandler> =
-	| Awaited<ReturnType<H>>
-	| ActionFailure<Record<string, unknown>>;
+// Wide constraint for the annotated-handler overload: `ctx: never` accepts any
+// `ActionContext<E>`, letting per-route `RequestEvent` narrowing flow through
+// while the strict overload below preserves contextual typing for unannotated
+// handlers.
+type AnyHandler = (ctx: never) => unknown | Promise<unknown>;
 
-type WrappedAction<H extends ActionHandler> = (event: RequestEvent) => Promise<ActionResult<H>>;
+type EventOf<H> = H extends (ctx: { event: infer E }) => unknown | Promise<unknown>
+	? E extends RequestEvent
+		? E
+		: RequestEvent
+	: RequestEvent;
 
-type WrappedActions<A extends Record<string, ActionHandler>> = {
+type WrappedAction<H> = H extends (ctx: never) => infer R
+	? (event: EventOf<H>) => Promise<Awaited<R> | ActionFailure<Record<string, unknown>>>
+	: never;
+
+type WrappedActions<A extends Record<string, AnyHandler>> = {
 	[K in keyof A]: WrappedAction<A[K]>;
 };
 
@@ -42,13 +52,18 @@ type WrappedActions<A extends Record<string, ActionHandler>> = {
  *   - ✅ `export const actions = defineActions(...)` (typeof flows to `$types`)
  *   - ✅ `export const actions = defineActions(...) satisfies Actions`
  *
- * @example Minimal create form
+ * @remarks To narrow `event.params` per route, annotate the destructured
+ *   handler parameter with `ActionContext<RequestEvent>` where `RequestEvent`
+ *   is imported from generated `./$types`. The wrapper preserves the
+ *   per-handler event type so `$types`-driven `form` inference stays precise.
+ *
+ * @example Minimal create form (no annotation — broad event)
  * ```ts
  * export const actions = defineActions({
  *   default: async ({ client, formData, registerValues }) => {
  *     const values = {
- *       name: String(formData.get('name') ?? ''),
- *       email: String(formData.get('email') ?? '')
+ *       name: getString(formData, 'name'),
+ *       email: getString(formData, 'email')
  *     };
  *     registerValues(values);
  *     const created = await client.post<User>('/users', values);
@@ -57,28 +72,38 @@ type WrappedActions<A extends Record<string, ActionHandler>> = {
  * });
  * ```
  *
- * @example Multiple actions sharing options
+ * @example Route-narrowed params (recommended for `[param]` routes)
  * ```ts
- * export const actions = defineActions(
- *   { http: { timeoutMs: 15_000 } },
- *   {
- *     save: async ({ client, formData, event, registerValues }) => { ... },
- *     delete: async ({ client, event }) => {
- *       await client.delete(`/users/${event.params.id}`);
- *       throw redirect(303, '/users');
- *     }
+ * import type { Actions, RequestEvent } from './$types';
+ * import type { ActionContext } from '$lib/app/shared/server';
+ *
+ * type ActionCtx = ActionContext<RequestEvent>;
+ *
+ * export const actions = defineActions({
+ *   save: async ({ client, formData, event }: ActionCtx) => {
+ *     await client.put(`/users/${event.params.id}`, ...);
+ *   },
+ *   delete: async ({ client, event }: ActionCtx) => {
+ *     await client.delete(`/users/${event.params.id}`);
  *   }
- * );
+ * }) satisfies Actions;
  * ```
  */
-export function defineActions<A extends Record<string, ActionHandler>>(
+// Overload 1: no annotation — `ctx` is contextually typed.
+export function defineActions<A extends Record<string, ActionHandler<RequestEvent, unknown>>>(
 	handlers: A
 ): WrappedActions<A>;
-export function defineActions<A extends Record<string, ActionHandler>>(
+export function defineActions<A extends Record<string, ActionHandler<RequestEvent, unknown>>>(
 	options: DefineActionsOptions,
 	handlers: A
 ): WrappedActions<A>;
-export function defineActions<A extends Record<string, ActionHandler>>(
+// Overload 2: annotated handler — wide contravariant constraint.
+export function defineActions<A extends Record<string, AnyHandler>>(handlers: A): WrappedActions<A>;
+export function defineActions<A extends Record<string, AnyHandler>>(
+	options: DefineActionsOptions,
+	handlers: A
+): WrappedActions<A>;
+export function defineActions<A extends Record<string, AnyHandler>>(
 	optionsOrHandlers: DefineActionsOptions | A,
 	maybeHandlers?: A
 ): WrappedActions<A> {
@@ -91,11 +116,11 @@ export function defineActions<A extends Record<string, ActionHandler>>(
 	return result;
 }
 
-function wrapAction<H extends ActionHandler>(
-	handler: H,
+function wrapAction(
+	handler: AnyHandler,
 	options: DefineActionsOptions
-): WrappedAction<H> {
-	return async (event: RequestEvent): Promise<ActionResult<H>> => {
+): (event: RequestEvent) => Promise<unknown> {
+	return async (event: RequestEvent): Promise<unknown> => {
 		const client = createAppHttpClient({
 			fetch: event.fetch,
 			baseURL: options.http?.baseURL ?? event.locals.apiBaseURL,
@@ -112,17 +137,17 @@ function wrapAction<H extends ActionHandler>(
 		const ctx: ActionContext = { event, client, formData, registerValues };
 
 		try {
-			return (await handler(ctx)) as ActionResult<H>;
+			return await (handler as (ctx: ActionContext) => unknown | Promise<unknown>)(ctx);
 		} catch (err) {
 			if (isKitHttpError(err) || isRedirect(err)) throw err;
 			if (options.onError !== undefined) {
-				return (await options.onError(err, {
+				return await options.onError(err, {
 					event,
 					formData,
 					values: registeredValues
-				})) as ActionResult<H>;
+				});
 			}
-			return dispatchActionError(err, { values: registeredValues ?? {} }) as ActionResult<H>;
+			return dispatchActionError(err, { values: registeredValues ?? {} });
 		}
 	};
 }
@@ -133,7 +158,7 @@ function wrapAction<H extends ActionHandler>(
  * `defineActions(options, handlers)`. This keeps action names like `http` or
  * `onError` unambiguous and lets the TS overloads carry the contract.
  */
-function normalizeArgs<A extends Record<string, ActionHandler>>(
+function normalizeArgs<A extends Record<string, AnyHandler>>(
 	first: DefineActionsOptions | A,
 	second: A | undefined
 ): [DefineActionsOptions, A] {

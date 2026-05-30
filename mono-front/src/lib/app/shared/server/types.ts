@@ -11,13 +11,23 @@ export type DefineHttpOptions = {
 	timeoutMs?: number;
 };
 
-export type ServerLoadContext = {
-	event: ServerLoadEvent;
+/**
+ * Context handed to a server load handler. `E` defaults to the broad
+ * `ServerLoadEvent`; narrow it via {@link routeServer} or by passing a
+ * route-specific event type from `./$types`.
+ */
+export type ServerLoadContext<E extends ServerLoadEvent = ServerLoadEvent> = {
+	event: E;
 	client: HttpClient;
 };
 
-export type ActionContext = {
-	event: RequestEvent;
+/**
+ * Context handed to a form action handler. `E` defaults to the broad
+ * `RequestEvent`; narrow it via {@link routeServer} or by passing a
+ * route-specific event type from `./$types`.
+ */
+export type ActionContext<E extends RequestEvent = RequestEvent> = {
+	event: E;
 	client: HttpClient;
 	/**
 	 * `event.request.formData()` resolved by the wrapper. The handler MUST
@@ -34,13 +44,13 @@ export type ActionContext = {
 	registerValues: (values: Record<string, unknown>) => void;
 };
 
-export type DefineLoadOptions = {
+export type DefineLoadOptions<E extends ServerLoadEvent = ServerLoadEvent> = {
 	http?: DefineHttpOptions;
 	/**
 	 * Replace the default `dispatchLoadError`. Must end the request (return
 	 * `never` — typically by throwing `error()` / `redirect()`).
 	 */
-	onError?: (err: unknown, event: ServerLoadEvent) => never;
+	onError?: (err: unknown, event: E) => never;
 };
 
 export type DefineActionsOptions = {
@@ -57,6 +67,10 @@ export type DefineActionsOptions = {
 	 * @remarks `ctx.formData` is the FormData instance the wrapper already
 	 *   awaited from `event.request`. Use it instead of `event.request.formData()`,
 	 *   which would throw because the body is already consumed.
+	 *
+	 * @remarks `event` is the broad `RequestEvent` (not route-narrowed). Cast
+	 *   to a route-specific `RequestEvent` from `./$types` if you need
+	 *   route-aware params inside `onError`.
 	 */
 	onError?: (
 		err: unknown,
@@ -68,6 +82,10 @@ export type DefineActionsOptions = {
 	) => ActionFailure<Record<string, unknown>> | Promise<ActionFailure<Record<string, unknown>>>;
 };
 
-export type LoadHandler<R> = (ctx: ServerLoadContext) => R | Promise<R>;
+export type LoadHandler<E extends ServerLoadEvent = ServerLoadEvent, R = unknown> = (
+	ctx: ServerLoadContext<E>
+) => R | Promise<R>;
 
-export type ActionHandler<R = unknown> = (ctx: ActionContext) => R | Promise<R>;
+export type ActionHandler<E extends RequestEvent = RequestEvent, R = unknown> = (
+	ctx: ActionContext<E>
+) => R | Promise<R>;

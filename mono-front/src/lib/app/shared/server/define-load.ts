@@ -23,11 +23,26 @@ import type { DefineLoadOptions, LoadHandler } from './types';
  *   - ✅ `export const load = defineLoad(...)` (typeof flows to `$types`)
  *   - ✅ `export const load = defineLoad(...) satisfies PageServerLoad`
  *
+ * @remarks Pass the route-specific `PageServerLoadEvent` from generated
+ *   `./$types` as the `E` generic to narrow `event.params` to required
+ *   strings. Without it, `event.params` resolves to the broad
+ *   `AppLayoutParams<'/'>` shape where every key is optional.
+ *   - ✅ `defineLoad<PageServerLoadEvent>(handler) satisfies PageServerLoad`
+ *   - ✅ `defineLoad(handler) satisfies PageServerLoad` (broad params)
+ *
  * @example Minimal
  * ```ts
  * export const load = defineLoad(async ({ client }) => ({
  *   users: await client.get<User[]>('/users'),
  * }));
+ * ```
+ *
+ * @example Route-specific params
+ * ```ts
+ * import type { PageServerLoad, PageServerLoadEvent } from './$types';
+ * export const load = defineLoad<PageServerLoadEvent>(async ({ event, client }) => ({
+ *   user: await client.get<User>(`/users/${event.params.id}`),
+ * })) satisfies PageServerLoad;
  * ```
  *
  * @example Per-call timeout
@@ -51,18 +66,20 @@ import type { DefineLoadOptions, LoadHandler } from './types';
  * );
  * ```
  */
-export function defineLoad<R>(handler: LoadHandler<R>): (event: ServerLoadEvent) => Promise<R>;
-export function defineLoad<R>(
-	options: DefineLoadOptions,
-	handler: LoadHandler<R>
-): (event: ServerLoadEvent) => Promise<R>;
-export function defineLoad<R>(
-	optionsOrHandler: DefineLoadOptions | LoadHandler<R>,
-	maybeHandler?: LoadHandler<R>
-): (event: ServerLoadEvent) => Promise<R> {
+export function defineLoad<E extends ServerLoadEvent = ServerLoadEvent, R = unknown>(
+	handler: LoadHandler<E, R>
+): (event: E) => Promise<R>;
+export function defineLoad<E extends ServerLoadEvent = ServerLoadEvent, R = unknown>(
+	options: DefineLoadOptions<E>,
+	handler: LoadHandler<E, R>
+): (event: E) => Promise<R>;
+export function defineLoad<E extends ServerLoadEvent = ServerLoadEvent, R = unknown>(
+	optionsOrHandler: DefineLoadOptions<E> | LoadHandler<E, R>,
+	maybeHandler?: LoadHandler<E, R>
+): (event: E) => Promise<R> {
 	const [options, handler] = normalizeArgs(optionsOrHandler, maybeHandler);
 
-	return async (event: ServerLoadEvent): Promise<R> => {
+	return async (event: E): Promise<R> => {
 		const client = createAppHttpClient({
 			fetch: event.fetch,
 			baseURL: options.http?.baseURL ?? event.locals.apiBaseURL,
@@ -84,10 +101,10 @@ export function defineLoad<R>(
 	};
 }
 
-function normalizeArgs<R>(
-	first: DefineLoadOptions | LoadHandler<R>,
-	second: LoadHandler<R> | undefined
-): [DefineLoadOptions, LoadHandler<R>] {
+function normalizeArgs<E extends ServerLoadEvent, R>(
+	first: DefineLoadOptions<E> | LoadHandler<E, R>,
+	second: LoadHandler<E, R> | undefined
+): [DefineLoadOptions<E>, LoadHandler<E, R>] {
 	if (typeof first === 'function') return [{}, first];
 	if (second === undefined) {
 		throw new Error('defineLoad: handler is required when options are provided');
