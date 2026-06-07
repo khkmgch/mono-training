@@ -59,7 +59,7 @@
 	{#if hint !== undefined}
 		<small id={hintId} class="hint">{hint}</small>
 	{/if}
-	<FormFieldError {name} error={error ?? undefined} />
+	<FormFieldError {name} {label} max={maxlength} error={error ?? undefined} />
 </div>
 
 <style>

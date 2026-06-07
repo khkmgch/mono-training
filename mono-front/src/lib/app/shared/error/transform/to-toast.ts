@@ -19,6 +19,5 @@ export function toErrorToast(err: HttpError | App.Error): ToastInput {
 		autoCloseMs: 0
 	};
 	if (key !== undefined) toast.key = key;
-	if (appErr.requestId !== undefined) toast.detail = appErr.requestId;
 	return toast;
 }

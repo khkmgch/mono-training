@@ -1,4 +1,5 @@
 import type { ActionResult } from '@sveltejs/kit';
+import { applyAction } from '$app/forms';
 import { getConfirmContext, type ConfirmIntent, type ConfirmState } from '../confirmation';
 import { focusFirstFieldError } from '../error';
 import { dispatchActionSuccess, type SuccessIntent } from '../success';
@@ -201,8 +202,10 @@ async function runResultHandler(
 			return;
 		case 'redirect':
 		case 'error':
-			// applyAction (the SvelteKit default) handles redirects (goto + invalidateAll)
-			// and `+error.svelte` rendering. Do not call update() here.
+			// A custom enhance callback replaces SvelteKit's default, so applyAction must be invoked
+			// explicitly: it follows redirects and renders the nearest +error boundary. Without this
+			// a thrown error() from the action (e.g. 404 on a concurrently-deleted row) shows nothing.
+			await applyAction(result);
 			return;
 	}
 }

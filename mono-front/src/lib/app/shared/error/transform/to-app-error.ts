@@ -10,8 +10,9 @@ import { inferAction, inferCode } from './problem-mapping';
  * - `fields` reads `err.problem?.errors` as `ProblemValidationError[]` (RFC 9457 §3
  *   top-level extension members; not nested under `extensions`) and maps to
  *   {@link FieldError}[]. Empty / malformed entries are dropped silently.
- * - `requestId` priority: (1) BE response header `X-Request-Id`,
- *   (2) ProblemDetails `instance`, (3) FE-generated `crypto.randomUUID()`.
+ * - `requestId` is server-provided only: (1) BE response header `X-Request-Id`,
+ *   (2) ProblemDetails `instance`. Absent when neither is present — we never fabricate
+ *   one, since a client-generated id correlates with nothing in the server logs.
  * - `retryable` is `true` for `NETWORK` / `TIMEOUT` / `RATE_LIMIT`.
  * - `retryAfterSec` is set when status is 429 / 503 and `Retry-After` is numeric.
  * - `override` wins for any field — even falsy values (e.g. `fields: []`) — so
@@ -64,9 +65,6 @@ function extractRequestId(err: HttpError): string | undefined {
 	if (header !== null && header !== undefined && header !== '') return header;
 	const instance = err.problem?.instance;
 	if (typeof instance === 'string' && instance !== '') return instance;
-	if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-		return crypto.randomUUID();
-	}
 	return undefined;
 }
 

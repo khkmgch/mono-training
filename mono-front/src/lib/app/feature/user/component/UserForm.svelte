@@ -12,7 +12,7 @@
 	type Props = {
 		user?: User;
 		form?:
-			| ({ error?: App.Error; values?: Record<string, unknown> } & {
+			| ({ error?: App.Error } & {
 					[key: string]: unknown;
 			  })
 			| null;
@@ -23,8 +23,8 @@
 	const isEdit = $derived(user !== undefined);
 
 	const initial = $derived({
-		loginId: (form?.values?.loginId as string | undefined) ?? user?.loginId ?? '',
-		fullName: (form?.values?.fullName as string | undefined) ?? user?.fullName ?? '',
+		loginId: (form?.loginId as string | undefined) ?? user?.loginId ?? '',
+		fullName: (form?.fullName as string | undefined) ?? user?.fullName ?? '',
 		version: user?.version ?? 0
 	});
 
