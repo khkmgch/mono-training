@@ -18,6 +18,6 @@ public abstract class AppException extends RuntimeException {
     public abstract String type();
 
     public List<FieldErrorEntry> errors() {
-        return null;
+        return List.of();
     }
 }

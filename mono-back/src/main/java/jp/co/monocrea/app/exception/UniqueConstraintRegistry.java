@@ -27,14 +27,14 @@ public class UniqueConstraintRegistry {
     /**
      * Resolves a violated constraint name to its field error.
      *
-     * @return a single-entry list, or {@code null} when the name is unknown or unreported by the
-     *         dialect, so the caller can fall back to a generic conflict response
+     * @return a single-entry list, or an empty list when the name is unknown or unreported by the
+     *         dialect, so the caller falls back to a generic conflict response with no errors array
      */
     public List<FieldErrorEntry> resolve(String constraintName) {
         if (constraintName == null) {
-            return null;
+            return List.of();
         }
         FieldErrorEntry entry = byConstraintName.get(constraintName);
-        return entry == null ? null : List.of(entry);
+        return entry == null ? List.of() : List.of(entry);
     }
 }
