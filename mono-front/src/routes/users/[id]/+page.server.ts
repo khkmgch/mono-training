@@ -1,6 +1,7 @@
 import { getNumber, getString, routeServer } from '$lib/app/shared/server';
 
 import { deleteUser, fetchUser, updateUser } from '$lib/app/feature/user/api';
+import type { UserFormValues } from '$lib/app/feature/user/types';
 
 import type { Actions, PageServerLoad, PageServerLoadEvent, RequestEvent } from './$types';
 
@@ -13,13 +14,15 @@ export const load = defineLoad(async ({ event, client }) => {
 
 export const actions = defineActions({
 	save: async ({ client, formData, registerValues, event }) => {
-		const loginId = getString(formData, 'loginId');
-		const fullName = getString(formData, 'fullName');
+		const values: UserFormValues = {
+			loginId: getString(formData, 'loginId'),
+			fullName: getString(formData, 'fullName')
+		};
 		const version = getNumber(formData, 'version');
 
-		registerValues({ loginId, fullName });
+		registerValues(values);
 
-		await updateUser(client, event.params.id, { loginId, fullName, version });
+		await updateUser(client, event.params.id, { ...values, version });
 	},
 	delete: async ({ client, formData, event }) => {
 		const version = getNumber(formData, 'version');

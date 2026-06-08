@@ -21,7 +21,7 @@ type EventOf<H> = H extends (ctx: { event: infer E }) => unknown | Promise<unkno
 	: RequestEvent;
 
 type WrappedAction<H> = H extends (ctx: never) => infer R
-	? (event: EventOf<H>) => Promise<Awaited<R> | ActionFailure<Record<string, unknown>>>
+	? (event: EventOf<H>) => Promise<Awaited<R> | ActionFailure<{ error: App.Error }>>
 	: never;
 
 type WrappedActions<A extends Record<string, AnyHandler>> = {

@@ -63,3 +63,10 @@ export type ProblemValidationError = {
 	message: string;
 	code?: string;
 };
+
+/**
+ * `Partial` values / optional `error` because both are present only after a
+ * failed submit — a fresh load or successful submit carries neither.
+ */
+export type FormState<TValues extends Record<string, unknown> = Record<string, never>> =
+	(Partial<TValues> & { error?: App.Error }) | null;
