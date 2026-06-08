@@ -21,6 +21,8 @@
 	async function reloadLatest(): Promise<void> {
 		reloading = true;
 		try {
+			// page.url is the current, already-resolved URL; resolve() is for route paths.
+			// eslint-disable-next-line svelte/no-navigation-without-resolve
 			await goto(page.url, { invalidateAll: true, noScroll: true });
 		} finally {
 			reloading = false;
