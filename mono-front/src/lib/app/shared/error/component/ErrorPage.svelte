@@ -6,7 +6,7 @@
 	import type { AppErrorCode } from '../types';
 
 	type Props = {
-		/** Custom body. Falls back to `error.message` + request id when absent. */
+		/** Custom body. Falls back to a localized, code-driven message + request id when absent. */
 		children?: Snippet<[error: App.Error, status: number]>;
 		/** Custom action buttons. Falls back to code-driven defaults when absent. */
 		actions?: Snippet<[error: App.Error, status: number]>;
@@ -36,6 +36,23 @@
 		return m.shared_error_system_title();
 	});
 
+	// Localized body by code — never the backend's English detail.
+	const body = $derived.by(() => {
+		switch (error.code) {
+			case 'NOT_FOUND':
+				return m.shared_error_not_found_body();
+			case 'SYSTEM':
+			case 'PARSE':
+				return m.shared_error_system_body();
+			case 'RATE_LIMIT':
+				return error.retryAfterSec !== undefined
+					? m.shared_error_rate_limit_body_with_seconds({ seconds: error.retryAfterSec })
+					: m.shared_error_rate_limit_body();
+			default:
+				return undefined;
+		}
+	});
+
 	function reload(): void {
 		if (typeof location !== 'undefined') location.reload();
 	}
@@ -49,42 +66,16 @@
 
 	{#if children}
 		{@render children(error, status)}
-	{:else}
-		<p>{error.message}</p>
-		{#if error.requestId !== undefined}
-			<small class="request-id">
-				{m.shared_error_request_id_label({ requestId: error.requestId })}
-			</small>
-		{/if}
-	{/if}
+	{:else if body !== undefined}<p>{body}</p>{/if}
 
 	<footer class="actions">
 		{#if actions}
 			{@render actions(error, status)}
-		{:else if error.code === 'NOT_FOUND'}
-			<a href={resolve('/')} role="button" class="secondary">
-				{m.app_action_back_to_top()}
-			</a>
-		{:else if error.code === 'NETWORK' || error.code === 'TIMEOUT'}
-			<button type="button" onclick={reload}>{m.app_action_retry()}</button>
-			<a href={resolve('/')} role="button" class="secondary">
-				{m.app_action_back_to_top()}
-			</a>
-		{:else if error.code === 'RATE_LIMIT'}
-			<p>
-				{#if error.retryAfterSec !== undefined}
-					{m.shared_error_rate_limit_body_with_seconds({ seconds: error.retryAfterSec })}
-				{:else}
-					{m.shared_error_rate_limit_body()}
-				{/if}
-			</p>
-			<a href={resolve('/')} role="button" class="secondary">
-				{m.app_action_back_to_top()}
-			</a>
 		{:else}
-			<a href={resolve('/')} role="button" class="secondary">
-				{m.app_action_back_to_top()}
-			</a>
+			{#if error.code === 'NETWORK' || error.code === 'TIMEOUT'}
+				<button type="button" onclick={reload}>{m.app_action_retry()}</button>
+			{/if}
+			<a href={resolve('/')} role="button" class="secondary">{m.app_action_back_to_top()}</a>
 		{/if}
 	</footer>
 </article>
@@ -97,12 +88,6 @@
 
 	.status {
 		opacity: 0.6;
-	}
-
-	.request-id {
-		display: block;
-		margin-top: 0.5rem;
-		opacity: 0.7;
 	}
 
 	.actions {

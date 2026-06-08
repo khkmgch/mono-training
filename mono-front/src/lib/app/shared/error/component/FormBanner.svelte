@@ -27,6 +27,15 @@
 		return m.shared_error_system_title();
 	});
 
+	// Body is localized per code — never the backend's English detail. Field-level codes
+	// (VALIDATION / CONFLICT_UNIQUE) rely on the inline FormFieldError, so they show no body.
+	const body = $derived.by(() => {
+		if (error?.code !== 'RATE_LIMIT') return undefined;
+		return error.retryAfterSec !== undefined
+			? m.shared_error_rate_limit_body_with_seconds({ seconds: error.retryAfterSec })
+			: m.shared_error_rate_limit_body();
+	});
+
 	// CONFLICT_VERSION uses ConflictBanner instead.
 	const visible = $derived(error !== undefined && error.code !== 'CONFLICT_VERSION');
 </script>
@@ -34,32 +43,12 @@
 {#if visible && error !== undefined}
 	<article role="alert" tabindex="-1" class="form-banner">
 		<strong>{title}</strong>
-		<p>{error.message}</p>
-		{#if error.fields !== undefined && error.fields.length > 0}
-			<ul>
-				{#each error.fields as field (field.name)}
-					<li>{field.message}</li>
-				{/each}
-			</ul>
-		{/if}
-		{#if error.requestId !== undefined}
-			<small>{m.shared_error_request_id_label({ requestId: error.requestId })}</small>
-		{/if}
+		{#if body !== undefined}<p>{body}</p>{/if}
 	</article>
 {/if}
 
 <style>
 	.form-banner {
 		border-left: 4px solid var(--ds-color-error);
-	}
-
-	.form-banner ul {
-		margin: 0.5rem 0 0;
-	}
-
-	.form-banner small {
-		display: block;
-		margin-top: 0.5rem;
-		opacity: 0.7;
 	}
 </style>

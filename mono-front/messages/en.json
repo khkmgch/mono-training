@@ -8,6 +8,7 @@
 	"common_validation_max_chars": "{field} must be {max} characters or fewer",
 	"common_validation_email_format": "{field} must be a valid email address",
 	"common_validation_unique": "This {field} is already in use",
+	"common_validation_invalid": "{field} is invalid",
 
 	"common_action_create_success": "{entity} created",
 	"common_action_update_success": "{entity} updated",
@@ -53,6 +54,9 @@
 	"shared_error_conflict_version_body": "Loading the latest will discard your current edits",
 	"shared_error_conflict_version_action": "Load latest",
 
+	"shared_error_not_found_body": "The item may not exist, or it has been deleted",
+	"shared_error_system_body": "Please try again in a moment",
+
 	"shared_error_rate_limit_body_with_seconds": "Please retry after {seconds} seconds",
 	"shared_error_rate_limit_body": "Please wait a moment before retrying",
 
@@ -73,7 +77,7 @@
 	"app_nav_breadcrumb_label": "Breadcrumb",
 	"app_nav_tutorial_chapters_label": "Tutorial chapters",
 	"app_action_back_to_top": "Back to top",
-	"app_action_back_to_users": "Back to user list",
+	"app_action_back_to_users": "Back to user search",
 	"app_action_retry": "Retry",
 
 	"list_pagination_nav": "Pagination",
