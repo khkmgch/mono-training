@@ -26,7 +26,7 @@
 		version: user?.version ?? 0
 	});
 
-	const submit = createSubmitHandler({
+	const submit = createSubmitHandler<{ created: User }>({
 		success: ({ result }) => {
 			if (isEdit) {
 				return {
@@ -36,7 +36,7 @@
 					invalidate: 'all'
 				};
 			}
-			const createdId = (result.data as { created?: { id?: string } } | undefined)?.created?.id;
+			const createdId = result.data?.created.id;
 			return {
 				toast: {
 					message: m.common_action_create_success({ entity: m.term_entity_user() })
