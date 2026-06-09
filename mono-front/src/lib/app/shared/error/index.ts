@@ -1,4 +1,10 @@
-export type { AppErrorAction, AppErrorCode, FieldError, ProblemValidationError } from './types';
+export type {
+	AppErrorAction,
+	AppErrorCode,
+	FieldError,
+	FormState,
+	ProblemValidationError
+} from './types';
 
 export { PROBLEM_TYPE_TO_CODE, inferAction, inferCode } from './transform/problem-mapping';
 export { toAppError } from './transform/to-app-error';

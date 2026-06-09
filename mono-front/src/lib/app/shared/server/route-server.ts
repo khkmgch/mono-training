@@ -5,7 +5,7 @@ import type { ActionHandler, DefineActionsOptions, DefineLoadOptions, LoadHandle
 
 type WrappedActionsFor<E extends RequestEvent, A> = {
 	[K in keyof A]: A[K] extends ActionHandler<E, infer R>
-		? (event: E) => Promise<Awaited<R> | ActionFailure<Record<string, unknown>>>
+		? (event: E) => Promise<Awaited<R> | ActionFailure<{ error: App.Error }>>
 		: never;
 };
 

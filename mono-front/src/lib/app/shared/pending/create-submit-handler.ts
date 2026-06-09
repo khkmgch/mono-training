@@ -15,15 +15,17 @@ export type SubmitInput = {
 	cancel: () => void;
 };
 
-export type SubmitOpts = {
+export type SubmitOpts<TSuccess extends Record<string, unknown> = Record<string, unknown>> = {
 	formData: FormData;
 	formElement: HTMLFormElement;
 	action: URL;
-	result: ActionResult;
+	result: ActionResult<TSuccess>;
 	update: (options?: { reset?: boolean; invalidateAll?: boolean }) => Promise<void>;
 };
 
-export type SubmitHandlerOptions = {
+export type SubmitHandlerOptions<
+	TSuccess extends Record<string, unknown> = Record<string, unknown>
+> = {
 	/**
 	 * Confirmation dialog. Either a static {@link ConfirmIntent} (always asked)
 	 * or a function deriving the intent from the submit input. Returning
@@ -40,7 +42,9 @@ export type SubmitHandlerOptions = {
 	 */
 	success?:
 		| SuccessIntent
-		| ((opts: SubmitOpts & { result: ActionResult & { type: 'success' } }) => SuccessIntent | null);
+		| ((
+				opts: SubmitOpts<TSuccess> & { result: ActionResult<TSuccess> & { type: 'success' } }
+		  ) => SuccessIntent | null);
 
 	/**
 	 * Failure behavior. `'auto'` calls `update()` and, when the surfaced
@@ -53,7 +57,9 @@ export type SubmitHandlerOptions = {
 	 */
 	failure?:
 		| 'auto'
-		| ((opts: SubmitOpts & { result: ActionResult & { type: 'failure' } }) => void | Promise<void>);
+		| ((
+				opts: SubmitOpts<TSuccess> & { result: ActionResult<TSuccess> & { type: 'failure' } }
+		  ) => void | Promise<void>);
 
 	/**
 	 * Optional pre-flight hook. Runs before {@link confirm}. Returning `false`
@@ -66,7 +72,7 @@ export type SubmitHandlerOptions = {
 	 * `failure` / `redirect` / `error`) after the type-specific handling.
 	 * Not called when the submission was cancelled (e.g. confirm dismissed).
 	 */
-	onResult?: (opts: SubmitOpts) => void | Promise<void>;
+	onResult?: (opts: SubmitOpts<TSuccess>) => void | Promise<void>;
 };
 
 /**
@@ -85,7 +91,9 @@ export type SubmitHandlerOptions = {
  * The flag is closure-local, so re-mounting the form (and creating a new
  * handler) resets it automatically.
  */
-export function createSubmitHandler(options: SubmitHandlerOptions): PendingSubmitFunction {
+export function createSubmitHandler<
+	TSuccess extends Record<string, unknown> = Record<string, unknown>
+>(options: SubmitHandlerOptions<TSuccess>): PendingSubmitFunction {
 	const confirmedState = { confirmed: false };
 
 	/* Capture context references synchronously at handler creation, while we
@@ -110,15 +118,16 @@ export function createSubmitHandler(options: SubmitHandlerOptions): PendingSubmi
 		if (!proceed) return;
 
 		return async (callback) => {
-			const opts: SubmitOpts = {
+			const opts: SubmitOpts<TSuccess> = {
 				formData: input.formData,
 				formElement: input.formElement,
 				action: input.action,
-				result: callback.result,
+				// result.data is Record<string, any> from enhance; TSuccess is the action's declared payload.
+				result: callback.result as ActionResult<TSuccess>,
 				update: callback.update
 			};
 
-			await runResultHandler(options, callback.result, callback.update, opts, toasts);
+			await runResultHandler(options, opts, toasts);
 
 			if (options.onResult !== undefined) {
 				await options.onResult(opts);
@@ -140,7 +149,7 @@ function wrapWithSharedCancel(input: SubmitInput, state: { cancelled: boolean })
 }
 
 async function runPreSubmitGuards(
-	options: SubmitHandlerOptions,
+	options: Pick<SubmitHandlerOptions, 'confirm' | 'onSubmit'>,
 	wrappedInput: SubmitInput,
 	cancelState: { cancelled: boolean },
 	confirmedState: { confirmed: boolean },
@@ -159,7 +168,7 @@ async function runPreSubmitGuards(
 }
 
 async function runConfirmDialog(
-	options: SubmitHandlerOptions,
+	options: Pick<SubmitHandlerOptions, 'confirm'>,
 	wrappedInput: SubmitInput,
 	confirmedState: { confirmed: boolean },
 	confirmCtx: ConfirmState
@@ -186,19 +195,18 @@ async function resolveConfirmIntent(
 	return option;
 }
 
-async function runResultHandler(
-	options: SubmitHandlerOptions,
-	result: ActionResult,
-	update: SubmitOpts['update'],
-	opts: SubmitOpts,
+async function runResultHandler<TSuccess extends Record<string, unknown>>(
+	options: SubmitHandlerOptions<TSuccess>,
+	opts: SubmitOpts<TSuccess>,
 	toasts: ToastState
 ): Promise<void> {
+	const { result } = opts;
 	switch (result.type) {
 		case 'success':
-			await runSuccess(options, result, update, opts, toasts);
+			await runSuccess(options, result, opts, toasts);
 			return;
 		case 'failure':
-			await runFailure(options, result, update, opts);
+			await runFailure(options, result, opts);
 			return;
 		case 'redirect':
 		case 'error':
@@ -210,30 +218,28 @@ async function runResultHandler(
 	}
 }
 
-async function runSuccess(
-	options: SubmitHandlerOptions,
-	result: ActionResult & { type: 'success' },
-	update: SubmitOpts['update'],
-	opts: SubmitOpts,
+async function runSuccess<TSuccess extends Record<string, unknown>>(
+	options: SubmitHandlerOptions<TSuccess>,
+	result: ActionResult<TSuccess> & { type: 'success' },
+	opts: SubmitOpts<TSuccess>,
 	toasts: ToastState
 ): Promise<void> {
 	const intent =
 		typeof options.success === 'function' ? options.success({ ...opts, result }) : options.success;
 	if (intent !== null && intent !== undefined) {
-		await dispatchActionSuccess(intent, { toasts, update });
+		await dispatchActionSuccess(intent, { toasts, update: opts.update });
 	} else {
-		await update();
+		await opts.update();
 	}
 }
 
-async function runFailure(
-	options: SubmitHandlerOptions,
-	result: ActionResult & { type: 'failure' },
-	update: SubmitOpts['update'],
-	opts: SubmitOpts
+async function runFailure<TSuccess extends Record<string, unknown>>(
+	options: SubmitHandlerOptions<TSuccess>,
+	result: ActionResult<TSuccess> & { type: 'failure' },
+	opts: SubmitOpts<TSuccess>
 ): Promise<void> {
 	if (options.failure === 'auto') {
-		await update();
+		await opts.update();
 		const data = result.data as { error?: App.Error } | undefined;
 		const error = data?.error;
 		if (error?.code === 'VALIDATION' || error?.code === 'CONFLICT_UNIQUE') {
@@ -245,5 +251,5 @@ async function runFailure(
 		await options.failure({ ...opts, result });
 		return;
 	}
-	await update();
+	await opts.update();
 }

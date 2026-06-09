@@ -7,15 +7,13 @@
 	import Field from '$lib/app/shared/ui/Field.svelte';
 	import FormActions from '$lib/app/shared/ui/FormActions.svelte';
 
-	import type { User } from '../types';
+	import type { FormState } from '$lib/app/shared/error';
+
+	import type { User, UserFormValues } from '../types';
 
 	type Props = {
 		user?: User;
-		form?:
-			| ({ error?: App.Error } & {
-					[key: string]: unknown;
-			  })
-			| null;
+		form?: FormState<UserFormValues>;
 	};
 
 	let { user, form }: Props = $props();
@@ -23,12 +21,12 @@
 	const isEdit = $derived(user !== undefined);
 
 	const initial = $derived({
-		loginId: (form?.loginId as string | undefined) ?? user?.loginId ?? '',
-		fullName: (form?.fullName as string | undefined) ?? user?.fullName ?? '',
+		loginId: form?.loginId ?? user?.loginId ?? '',
+		fullName: form?.fullName ?? user?.fullName ?? '',
 		version: user?.version ?? 0
 	});
 
-	const submit = createSubmitHandler({
+	const submit = createSubmitHandler<{ created: User }>({
 		success: ({ result }) => {
 			if (isEdit) {
 				return {
@@ -38,7 +36,7 @@
 					invalidate: 'all'
 				};
 			}
-			const createdId = (result.data as { created?: { id?: string } } | undefined)?.created?.id;
+			const createdId = result.data?.created.id;
 			return {
 				toast: {
 					message: m.common_action_create_success({ entity: m.term_entity_user() })

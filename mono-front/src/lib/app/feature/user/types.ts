@@ -15,3 +15,10 @@ export type UpsertUserRequest = {
 	loginId: string;
 	fullName: string;
 };
+
+/** Distinct from {@link UpsertUserRequest} (the API body) so the form's field
+ *  contract can diverge from the wire contract. */
+export type UserFormValues = {
+	loginId: string;
+	fullName: string;
+};
