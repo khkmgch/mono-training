@@ -21,8 +21,6 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class UserRepositoryTest {
 
-    private static final int SEED_USER_COUNT = 12;
-
     @Inject
     UserRepository repository;
 
@@ -223,10 +221,14 @@ class UserRepositoryTest {
     @Test
     @TestTransaction
     void searchWithoutFiltersReturnsEveryVisibleRow() {
-        assertEquals(SEED_USER_COUNT,
-                repository.search(PageRequest.of(0, 200, null), null, null).totalCount());
-        assertEquals(SEED_USER_COUNT,
-                repository.search(PageRequest.of(0, 200, null), "   ", "").totalCount(),
+        long baseline = repository.search(PageRequest.of(0, 200, null), null, null).totalCount();
+        createUser("rt-nofilter-a", "A");
+        createUser("rt-nofilter-b", "B");
+        entityManager.flush();
+
+        long unfiltered = repository.search(PageRequest.of(0, 200, null), null, null).totalCount();
+        assertEquals(baseline + 2, unfiltered, "no filter counts every visible row");
+        assertEquals(unfiltered, repository.search(PageRequest.of(0, 200, null), "   ", "").totalCount(),
                 "blank filters are treated as no filter");
     }
 
