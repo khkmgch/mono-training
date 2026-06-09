@@ -69,4 +69,5 @@ export type ProblemValidationError = {
  * failed submit — a fresh load or successful submit carries neither.
  */
 export type FormState<TValues extends Record<string, unknown> = Record<string, never>> =
-	(Partial<TValues> & { error?: App.Error }) | null;
+	| (Partial<TValues> & { error?: App.Error })
+	| null;
