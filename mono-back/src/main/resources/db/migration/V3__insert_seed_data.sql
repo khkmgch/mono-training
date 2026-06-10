@@ -1,13 +1,26 @@
-INSERT INTO app.users (id, login_id, full_name, created_at, updated_at) VALUES
-    ('a08aba37-52ca-4756-9650-3753ccd02fa6', 'tanaka01',    'Tanaka Taro',       '2026-01-15 09:00:00+09', '2026-01-15 09:00:00+09'),
-    ('69793e06-76d0-4b17-b96f-0bc9c5f4675a', 'suzuki02',    'Suzuki Hanako',     '2026-02-01 10:30:00+09', '2026-02-01 10:30:00+09'),
-    ('b02b7e8e-fbda-45e6-95ec-ec9e3ec7e943', 'sato03',      'Sato Kenichi',      '2026-03-01 11:00:00+09', '2026-03-01 11:00:00+09'),
-    ('09559906-0ea8-4a8a-a8bd-f66b97d8a74f', 'yamada04',    'Yamada Misaki',     '2026-03-01 08:45:00+09', '2026-03-01 08:45:00+09'),
-    ('4613ba65-4f4b-4fbf-96c1-5952ce50327b', 'takahashi05', 'Takahashi Ryosuke', '2026-03-10 16:20:00+09', '2026-03-10 16:20:00+09'),
-    ('6bed9853-c2b3-4849-883a-42c5c2cf3704', 'ito06',       'Ito Naoki',         '2026-03-20 09:30:00+09', '2026-03-20 09:30:00+09'),
-    ('80691337-ba9e-4761-8f0e-fdf45e299029', 'watanabe07',  'Watanabe Yuko',     '2026-03-20 13:15:00+09', '2026-03-20 13:15:00+09'),
-    ('fd6abcf1-6d8a-477c-ad54-51bbd701db1c', 'nakamura08',  'Nakamura Daisuke',  '2026-04-01 14:00:00+09', '2026-04-01 14:00:00+09'),
-    ('919e140d-69b0-4472-afc4-18ae328d6349', 'kobayashi09', 'Kobayashi Emi',     '2026-04-01 09:00:00+09', '2026-04-01 09:00:00+09'),
-    ('3658a048-a73b-4a53-bf84-70c56c650a04', 'kato10',      'Kato Shota',        '2026-04-05 15:30:00+09', '2026-04-05 15:30:00+09'),
-    ('ce87a897-e6ae-43d5-9b6c-7ca4bed0c380', 'yoshida11',   'Yoshida Asuka',     '2026-04-08 08:00:00+09', '2026-04-08 08:00:00+09'),
-    ('1c7d4ac8-ce6a-4eca-8e86-ec18c376730d', 'yamamoto12',  'Yamamoto Takashi',  '2026-04-10 12:00:00+09', '2026-04-10 12:00:00+09');
+-- Demo seed: 45 users so paging is visible (3 pages at the default page size of 20). login_id,
+-- full_name, and updated_at are given independent orders (hence the two row_number() orderings)
+-- so that sorting by each one visibly reorders the list.
+
+WITH family_name (ord, name) AS (
+    VALUES (1, 'Tanaka'), (2, 'Suzuki'), (3, 'Sato'), (4, 'Watanabe'), (5, 'Yamamoto')
+),
+given_name (ord, name) AS (
+    VALUES (1, 'Taro'), (2, 'Hanako'), (3, 'Kenji'), (4, 'Misaki'), (5, 'Ryo'),
+           (6, 'Naoki'), (7, 'Yuko'), (8, 'Daisuke'), (9, 'Emi')
+),
+numbered AS (
+    SELECT
+        family_name.name || ' ' || given_name.name AS full_name,
+        row_number() OVER (ORDER BY family_name.ord, given_name.ord) AS register_seq,
+        row_number() OVER (ORDER BY given_name.ord, family_name.ord) AS update_seq
+    FROM family_name CROSS JOIN given_name
+)
+INSERT INTO app.users (id, login_id, full_name, created_at, updated_at)
+SELECT
+    gen_random_uuid(),
+    'user' || to_char(register_seq, 'FM000'),
+    full_name,
+    TIMESTAMPTZ '2026-01-06 09:00:00+09' + (register_seq - 1) * INTERVAL '1 day',
+    TIMESTAMPTZ '2026-05-01 09:00:00+09' - (update_seq - 1) * INTERVAL '1 day'
+FROM numbered;
