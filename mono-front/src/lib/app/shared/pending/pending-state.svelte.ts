@@ -24,6 +24,14 @@ export class PendingState {
 	#visible = $state(false);
 	#timer: ReturnType<typeof setTimeout> | null = null;
 
+	/**
+	 * True while at least one operation is running. Flips immediately, unlike
+	 * {@link visible} which applies the flash-prevention delay.
+	 */
+	get active(): boolean {
+		return this.#count > 0;
+	}
+
 	get visible(): boolean {
 		if (!browser) return false;
 		return this.#visible;

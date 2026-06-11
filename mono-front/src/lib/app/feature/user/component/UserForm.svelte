@@ -3,7 +3,7 @@
 	import * as m from '$lib/paraglide/messages';
 
 	import { FormErrors } from '$lib/app/shared/error';
-	import { enhanceWithPending, createSubmitHandler } from '$lib/app/shared/pending';
+	import { enhanceWithPending, createSubmitHandler, PendingState } from '$lib/app/shared/pending';
 	import Field from '$lib/app/shared/ui/Field.svelte';
 	import FormActions from '$lib/app/shared/ui/FormActions.svelte';
 
@@ -17,6 +17,8 @@
 	};
 
 	let { user, form }: Props = $props();
+
+	const formPending = new PendingState();
 
 	const isEdit = $derived(user !== undefined);
 
@@ -49,7 +51,7 @@
 	});
 </script>
 
-<form method="POST" action="?/save" use:enhanceWithPending={submit}>
+<form method="POST" action="?/save" use:enhanceWithPending={{ submit, formPending }}>
 	<FormErrors error={form?.error} />
 
 	<Field
@@ -83,7 +85,7 @@
 		<a href={resolve('/users')} role="button" class="link-button">
 			{m.term_action_cancel()}
 		</a>
-		<button type="submit">
+		<button type="submit" disabled={formPending.active} aria-busy={formPending.visible}>
 			{isEdit ? m.term_action_save() : m.term_action_create()}
 		</button>
 	</FormActions>

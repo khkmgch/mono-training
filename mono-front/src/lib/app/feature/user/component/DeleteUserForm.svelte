@@ -3,13 +3,15 @@
 
 	import * as m from '$lib/paraglide/messages';
 
-	import { enhanceWithPending, createSubmitHandler } from '$lib/app/shared/pending';
+	import { enhanceWithPending, createSubmitHandler, PendingState } from '$lib/app/shared/pending';
 
 	import type { User } from '../types';
 
 	type Props = { user: User };
 
 	let { user }: Props = $props();
+
+	const formPending = new PendingState();
 
 	const submit = createSubmitHandler({
 		confirm: () => ({
@@ -26,9 +28,14 @@
 	});
 </script>
 
-<form method="POST" action="?/delete" use:enhanceWithPending={submit}>
+<form method="POST" action="?/delete" use:enhanceWithPending={{ submit, formPending }}>
 	<input type="hidden" name="version" value={user.version} />
-	<button type="submit" class="btn-icon">
+	<button
+		type="submit"
+		class="btn-icon"
+		disabled={formPending.active}
+		aria-busy={formPending.visible}
+	>
 		<Trash2 size={16} aria-hidden="true" />
 		{m.term_action_delete()}
 	</button>
