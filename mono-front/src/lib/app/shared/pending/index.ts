@@ -2,6 +2,7 @@ export { PendingState } from './pending-state.svelte';
 export { setPendingContext, getPendingContext } from './context.svelte';
 export {
 	enhanceWithPending,
+	type EnhanceWithPendingOptions,
 	type PendingSubmitFunction,
 	type SubmitCallbackOpts
 } from './enhance-with-pending';

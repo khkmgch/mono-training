@@ -1,19 +1,11 @@
 import { enhance } from '$app/forms';
 import type { ActionResult, SubmitFunction } from '@sveltejs/kit';
 import { getPendingContext } from './context.svelte';
+import type { PendingState } from './pending-state.svelte';
 
-/**
- * SubmitFunction shape consumed by {@link enhanceWithPending}. Identical to
- * Kit's `SubmitFunction` (input includes `controller`, `submitter`, `cancel`;
- * the optional callback receives `result` / `formData` / `formElement` /
- * `action` / `update`).
- */
 export type PendingSubmitFunction = SubmitFunction;
 
-/**
- * Options passed to the optional post-submit callback returned from
- * {@link PendingSubmitFunction}. Mirrors Kit's callback shape.
- */
+/** Kit's post-submit callback parameter, which Kit does not export as a named type. */
 export type SubmitCallbackOpts = {
 	formData: FormData;
 	formElement: HTMLFormElement;
@@ -22,33 +14,55 @@ export type SubmitCallbackOpts = {
 	update: (options?: { reset?: boolean; invalidateAll?: boolean }) => Promise<void>;
 };
 
+export type EnhanceWithPendingOptions = {
+	/** Same contract as passing the function directly. */
+	submit?: PendingSubmitFunction;
+	/** Per-form pending state, started and ended in lockstep with the global counter. */
+	formPending?: PendingState;
+};
+
 /**
- * Wrap a form with `use:enhanceWithPending={submit}`.
+ * `enhance` with a pending-state lifecycle and a first-wins re-entry guard.
  *
- * Calls SvelteKit `enhance` internally so all standard form-action behavior
- * is preserved (default `applyAction`, `update`, `controller.signal` for
- * back-pressure on rapid resubmits, etc.). On every submit lifecycle:
+ * Kit does not serialize concurrent submissions of the same form — each
+ * submit starts an independent fetch that Kit itself never aborts (kit 2.55)
+ * — and form actions are not idempotent, so a submit arriving while one is
+ * in flight is cancelled before any user code runs.
  *
- * 1. `pending.start()` is invoked at the beginning.
- * 2. The user's `submit` (if any) runs. If it calls `cancel()` or throws,
- *    `pending.end()` runs immediately.
- * 3. If `submit` returned a callback, it runs after the response with
- *    `pending.end()` guaranteed in the callback's `finally` block.
+ * The global pending counter and `formPending` start and end with the
+ * submission. `cancel()` or a throw ends the lifecycle immediately, so a
+ * confirm-dialog first pass releases the guard while the dialog is open.
  */
 export function enhanceWithPending(
 	node: HTMLFormElement,
-	submit?: PendingSubmitFunction
+	param?: PendingSubmitFunction | EnhanceWithPendingOptions
 ): { destroy: () => void } {
+	const { submit, formPending }: EnhanceWithPendingOptions =
+		typeof param === 'function' ? { submit: param } : (param ?? {});
 	const pending = getPendingContext();
 
+	let inFlight = false;
+
 	const wrapped: SubmitFunction = async (input) => {
+		if (inFlight) {
+			input.cancel();
+			return;
+		}
+		inFlight = true;
 		pending.start();
+		formPending?.start();
+
 		let endCalled = false;
 		const endOnce = (): void => {
 			if (endCalled) return;
 			endCalled = true;
+			inFlight = false;
 			pending.end();
+			formPending?.end();
 		};
+
+		// Kit invokes no callbacks after an abort; this is the only hook that closes the lifecycle.
+		input.controller.signal.addEventListener('abort', endOnce, { once: true });
 
 		const userCancel = input.cancel;
 		const wrappedCancel = (): void => {
