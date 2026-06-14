@@ -11,7 +11,5 @@ import { sanitizeText } from './sanitize-text';
  *   single `\s` class covers full-width input.
  */
 export function collapseSpaces(value: string): string {
-	return sanitizeText(value)
-		.replace(/\s+/g, ' ')
-		.trim();
+	return sanitizeText(value).replace(/\s+/g, ' ').trim();
 }
