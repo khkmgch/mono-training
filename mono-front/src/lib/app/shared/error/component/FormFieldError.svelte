@@ -8,11 +8,13 @@
 		label: string;
 		/** Max length, used by the `size` rule's message. */
 		max?: number;
+		/** Min length, used by the `min` rule's message. */
+		min?: number;
 		/** The form-level error received via `form?.error`. */
 		error: App.Error | undefined;
 	};
 
-	let { name, label, max, error }: Props = $props();
+	let { name, label, max, min, error }: Props = $props();
 
 	// Localize by the backend rule code; the raw backend message (English) is never shown.
 	const message = $derived.by(() => {
@@ -27,6 +29,12 @@
 				return max !== undefined
 					? m.common_validation_max_chars({ field: label, max })
 					: m.common_validation_invalid({ field: label });
+			case 'min':
+				return min !== undefined
+					? m.common_validation_min_chars({ field: label, min })
+					: m.common_validation_invalid({ field: label });
+			case 'pattern':
+				return m.common_validation_pattern({ field: label });
 			default:
 				return m.common_validation_invalid({ field: label });
 		}

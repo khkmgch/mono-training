@@ -5,12 +5,14 @@
 	"common_a11y_skip_to_main": "メインコンテンツへスキップ",
 
 	"common_validation_required": "{field}は必須です",
+	"common_validation_min_chars": "{field}は{min}文字以上で入力してください",
 	"common_validation_max_chars": "{field}は{max}文字以内で入力してください",
+	"common_validation_pattern": "{field}は半角英数字と . _ - のみ使用できます",
 	"common_validation_email_format": "{field}はメールアドレスの形式で入力してください",
 	"common_validation_unique": "この{field}は既に使用されています",
 	"common_validation_invalid": "{field}が正しくありません",
 
-	"common_action_create_success": "{entity}を作成しました",
+	"common_action_create_success": "{entity}を登録しました",
 	"common_action_update_success": "{entity}の情報を更新しました",
 	"common_action_save_success": "{entity}を保存しました",
 	"common_action_delete_success": "{entity}を削除しました",
@@ -22,7 +24,7 @@
 	"common_dialog_destructive_warning": "この操作は取り消せません",
 
 	"common_screen_title_list": "{entity}一覧",
-	"common_screen_title_create": "{entity}作成",
+	"common_screen_title_create": "{entity}登録",
 	"common_screen_title_edit": "{entity}編集",
 	"common_screen_title_detail": "{entity}詳細",
 
@@ -31,7 +33,7 @@
 
 	"term_entity_user": "ユーザー",
 
-	"term_action_create": "作成",
+	"term_action_create": "登録",
 	"term_action_save": "保存",
 	"term_action_cancel": "キャンセル",
 	"term_action_delete": "削除",
@@ -93,18 +95,18 @@
 
 	"feature_user_search_title": "ユーザー検索",
 	"feature_user_search_form_label": "ユーザー検索条件",
-	"feature_user_search_label_login_id": "ユーザ ID",
-	"feature_user_search_label_full_name": "ユーザ名",
+	"feature_user_search_label_login_id": "ユーザー ID",
+	"feature_user_search_label_full_name": "ユーザー名",
 	"feature_user_search_table_caption": "ユーザー一覧",
-	"feature_user_search_column_login_id": "ユーザ ID",
-	"feature_user_search_column_full_name": "ユーザ名",
+	"feature_user_search_column_login_id": "ユーザー ID",
+	"feature_user_search_column_full_name": "ユーザー名",
 	"feature_user_search_column_updated_at": "更新日時",
 	"feature_user_search_column_actions": "操作",
 	"feature_user_search_action_detail_for": "{loginId} の詳細を開く",
 	"feature_user_search_action_clear": "クリア",
 
-	"feature_user_detail_label_login_id": "ユーザ ID",
-	"feature_user_detail_label_full_name": "ユーザ名",
+	"feature_user_detail_label_login_id": "ユーザー ID",
+	"feature_user_detail_label_full_name": "ユーザー名",
 	"feature_user_detail_hint_login_id": "半角英数 64 文字以内",
 	"feature_user_detail_meta_created_at_label": "登録",
 	"feature_user_detail_meta_updated_at_label": "更新",

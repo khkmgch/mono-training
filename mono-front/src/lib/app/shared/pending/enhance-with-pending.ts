@@ -41,6 +41,10 @@ export function enhanceWithPending(
 		typeof param === 'function' ? { submit: param } : (param ?? {});
 	const pending = getPendingContext();
 
+	// JS is on (this ran): suppress native constraint bubbles so FormFieldError
+	// owns the validation UX. Progressive enhancement — JS-off keeps native validation.
+	node.noValidate = true;
+
 	let inFlight = false;
 
 	const wrapped: SubmitFunction = async (input) => {

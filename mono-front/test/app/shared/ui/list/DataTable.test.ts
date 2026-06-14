@@ -388,7 +388,10 @@ describe('DataTable', () => {
 					props: buildFixtureProps({ result })
 				});
 				const summary = container.querySelector('.ds-datatable-summary');
-				expect(summary?.textContent?.trim()).toBe('Showing 1–2 of 2');
+				// DataTable owns the 1-based range math, not the wording. Assert the
+				// computed numbers (start, end, total); default-labels.test.ts pins the
+				// exact copy — so a message-copy change can't break this test.
+				expect(summary?.textContent?.match(/\d+/g)).toEqual(['1', '2', '2']);
 			});
 
 			it('renders the summary with the correct 1-based range on page 2 of a full page', () => {
@@ -407,7 +410,7 @@ describe('DataTable', () => {
 					props: buildFixtureProps({ result })
 				});
 				const summary = container.querySelector('.ds-datatable-summary');
-				expect(summary?.textContent?.trim()).toBe('Showing 21–40 of 50');
+				expect(summary?.textContent?.match(/\d+/g)).toEqual(['21', '40', '50']);
 			});
 
 			it('clamps `end` to totalCount on a partial last page', () => {
@@ -426,7 +429,7 @@ describe('DataTable', () => {
 					props: buildFixtureProps({ result })
 				});
 				const summary = container.querySelector('.ds-datatable-summary');
-				expect(summary?.textContent?.trim()).toBe('Showing 41–50 of 50');
+				expect(summary?.textContent?.match(/\d+/g)).toEqual(['41', '50', '50']);
 			});
 
 			it('hides the summary when isOutOfRange (page beyond totalPages)', () => {

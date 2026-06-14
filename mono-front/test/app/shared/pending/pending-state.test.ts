@@ -22,6 +22,32 @@ describe('PendingState (browser)', () => {
 		expect(state.visible).toBe(false);
 	});
 
+	it('starts not active', () => {
+		expect(state.active).toBe(false);
+	});
+
+	it('turns active immediately on start, before the flash window elapses', () => {
+		state.start();
+		expect(state.active).toBe(true);
+		expect(state.visible).toBe(false);
+	});
+
+	it('stays active while nested operations remain and resets on the final end', () => {
+		state.start();
+		state.start();
+		state.end();
+		expect(state.active).toBe(true);
+		state.end();
+		expect(state.active).toBe(false);
+	});
+
+	it('keeps active false on end without a running operation (no negative counter)', () => {
+		state.end();
+		expect(state.active).toBe(false);
+		state.start();
+		expect(state.active).toBe(true);
+	});
+
 	it('does not turn visible inside the 100ms flash window', () => {
 		state.start();
 		vi.advanceTimersByTime(99);
@@ -105,7 +131,7 @@ describe('PendingState (SSR)', () => {
 		vi.doUnmock('$app/environment');
 	});
 
-	it('visible is always false and start does not schedule timers', async () => {
+	it('visible and active are always false and start does not schedule timers', async () => {
 		vi.doMock('$app/environment', () => ({ browser: false }));
 		const ssr = await import('$lib/app/shared/pending');
 		const ssrState = new ssr.PendingState();
@@ -113,6 +139,7 @@ describe('PendingState (SSR)', () => {
 		ssrState.start();
 		ssrState.start();
 		expect(ssrState.visible).toBe(false);
+		expect(ssrState.active).toBe(false);
 		expect(setSpy).not.toHaveBeenCalled();
 		setSpy.mockRestore();
 	});

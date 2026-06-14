@@ -6,6 +6,7 @@ import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
+import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -116,8 +117,20 @@ public class ProblemMappers {
         String annotation = violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName();
         return switch (annotation) {
             case "NotBlank", "NotNull", "NotEmpty" -> "required";
-            case "Size" -> "size";
+            case "Size" -> sizeCode(violation);
+            case "Pattern" -> "pattern";
             default -> null;
         };
+    }
+
+    // Split @Size into 'min' (too short) / 'size' (too long) so the frontend renders the matching
+    // message rather than always assuming a max-length violation.
+    private static String sizeCode(ConstraintViolation<?> violation) {
+        Size size = (Size) violation.getConstraintDescriptor().getAnnotation();
+        Object value = violation.getInvalidValue();
+        if (value instanceof CharSequence text && text.length() < size.min()) {
+            return "min";
+        }
+        return "size";
     }
 }
