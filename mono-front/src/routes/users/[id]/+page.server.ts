@@ -1,4 +1,5 @@
 import { getNumber, getString, routeServer } from '$lib/app/shared/server';
+import { collapseSpaces, stripSpaces } from '$lib/core/text';
 
 import { deleteUser, fetchUser, updateUser } from '$lib/app/feature/user/api';
 import type { UserFormValues } from '$lib/app/feature/user/types';
@@ -15,8 +16,8 @@ export const load = defineLoad(async ({ event, client }) => {
 export const actions = defineActions({
 	save: async ({ client, formData, registerValues, event }) => {
 		const values: UserFormValues = {
-			loginId: getString(formData, 'loginId'),
-			fullName: getString(formData, 'fullName')
+			loginId: stripSpaces(getString(formData, 'loginId')),
+			fullName: collapseSpaces(getString(formData, 'fullName'))
 		};
 		const version = getNumber(formData, 'version');
 

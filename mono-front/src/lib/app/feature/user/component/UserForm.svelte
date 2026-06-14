@@ -6,9 +6,18 @@
 	import { enhanceWithPending, createSubmitHandler, PendingState } from '$lib/app/shared/pending';
 	import Field from '$lib/app/shared/ui/Field.svelte';
 	import FormActions from '$lib/app/shared/ui/FormActions.svelte';
+	import { collapseSpaces, stripSpaces } from '$lib/core/text';
 
 	import type { FormState } from '$lib/app/shared/error';
 
+	import {
+		validateLoginId,
+		validateFullName,
+		LOGIN_ID_MIN,
+		LOGIN_ID_MAX,
+		FULL_NAME_MAX,
+		LOGIN_ID_PATTERN_SOURCE
+	} from '../validation';
 	import type { User, UserFormValues } from '../types';
 
 	type Props = {
@@ -22,6 +31,9 @@
 
 	const isEdit = $derived(user !== undefined);
 
+	let loginIdField: ReturnType<typeof Field> | undefined = $state();
+	let fullNameField: ReturnType<typeof Field> | undefined = $state();
+
 	const initial = $derived({
 		loginId: form?.loginId ?? user?.loginId ?? '',
 		fullName: form?.fullName ?? user?.fullName ?? '',
@@ -29,6 +41,9 @@
 	});
 
 	const submit = createSubmitHandler<{ created: User }>({
+		// Validate every field (including ones never blurred) before submitting;
+		// returning false aborts the request so a bad value never reaches the server.
+		onSubmit: () => [loginIdField, fullNameField].every((field) => field?.validateNow() === true),
 		success: ({ result }) => {
 			if (isEdit) {
 				return {
@@ -55,26 +70,34 @@
 	<FormErrors error={form?.error} />
 
 	<Field
+		bind:this={loginIdField}
 		label={m.feature_user_detail_label_login_id()}
 		name="loginId"
 		type="text"
 		required
-		maxlength={64}
+		minlength={LOGIN_ID_MIN}
+		maxlength={LOGIN_ID_MAX}
+		pattern={LOGIN_ID_PATTERN_SOURCE}
 		value={initial.loginId}
 		autocomplete="off"
 		hint={m.feature_user_detail_hint_login_id()}
 		error={form?.error}
+		normalize={stripSpaces}
+		validate={validateLoginId}
 	/>
 
 	<Field
+		bind:this={fullNameField}
 		label={m.feature_user_detail_label_full_name()}
 		name="fullName"
 		type="text"
 		required
-		maxlength={100}
+		maxlength={FULL_NAME_MAX}
 		value={initial.fullName}
 		autocomplete="off"
 		error={form?.error}
+		normalize={collapseSpaces}
+		validate={validateFullName}
 	/>
 
 	{#if isEdit}

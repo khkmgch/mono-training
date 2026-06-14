@@ -26,6 +26,7 @@ vi.mock('$lib/app/shared/pending/context.svelte', () => ({
 }));
 
 const { enhanceWithPending } = await import('$lib/app/shared/pending/enhance-with-pending');
+const { PendingState } = await import('$lib/app/shared/pending/pending-state.svelte');
 
 const buildSubmitInput = (
 	overrides: Partial<Parameters<SubmitFunction>[0]> = {}
@@ -145,5 +146,175 @@ describe('enhanceWithPending', () => {
 			})
 		).rejects.toThrow('callback boom');
 		expect(fakePending.end).toHaveBeenCalledOnce();
+	});
+
+	describe('re-entry guard (first-wins)', () => {
+		const completeLifecycle = async (
+			callback: Awaited<ReturnType<SubmitFunction>>
+		): Promise<void> => {
+			if (typeof callback !== 'function') throw new Error('expected a post-submit callback');
+			await callback({
+				formData: new FormData(),
+				formElement: document.createElement('form'),
+				action: new URL('http://test'),
+				result: successResult(),
+				update: vi.fn(async () => {})
+			});
+		};
+
+		it('cancels a submit arriving while another is in flight, before any user code runs', async () => {
+			const userSubmit = vi.fn(async () => async () => {});
+			enhanceWithPending(document.createElement('form'), userSubmit);
+
+			const firstCallback = await captured!(buildSubmitInput());
+
+			const secondCancel = vi.fn();
+			const secondResult = await captured!(buildSubmitInput({ cancel: secondCancel }));
+
+			expect(secondCancel).toHaveBeenCalledOnce();
+			expect(secondResult).toBeUndefined();
+			expect(userSubmit).toHaveBeenCalledOnce();
+
+			await completeLifecycle(firstCallback);
+		});
+
+		it('does not start pending for a guarded re-entry', async () => {
+			enhanceWithPending(document.createElement('form'), async () => async () => {});
+
+			const firstCallback = await captured!(buildSubmitInput());
+			await captured!(buildSubmitInput());
+
+			expect(fakePending.start).toHaveBeenCalledOnce();
+
+			await completeLifecycle(firstCallback);
+
+			expect(fakePending.end).toHaveBeenCalledOnce();
+		});
+
+		it('accepts a new submission after the previous one completes', async () => {
+			const userSubmit = vi.fn(async () => async () => {});
+			enhanceWithPending(document.createElement('form'), userSubmit);
+
+			const firstCallback = await captured!(buildSubmitInput());
+			await completeLifecycle(firstCallback);
+
+			const secondCancel = vi.fn();
+			await captured!(buildSubmitInput({ cancel: secondCancel }));
+
+			expect(secondCancel).not.toHaveBeenCalled();
+			expect(userSubmit).toHaveBeenCalledTimes(2);
+		});
+
+		it('releases the guard when the user fn cancels (confirm-dialog first pass)', async () => {
+			const userSubmit = vi.fn(async ({ cancel }: Parameters<SubmitFunction>[0]) => {
+				cancel();
+			});
+			enhanceWithPending(document.createElement('form'), userSubmit);
+
+			await captured!(buildSubmitInput());
+			await captured!(buildSubmitInput());
+
+			expect(userSubmit).toHaveBeenCalledTimes(2);
+		});
+
+		it('releases the guard when the user fn throws', async () => {
+			const userSubmit = vi.fn(async () => {
+				throw new Error('boom');
+			});
+			enhanceWithPending(document.createElement('form'), userSubmit);
+
+			await expect(captured!(buildSubmitInput())).rejects.toThrow('boom');
+			await expect(captured!(buildSubmitInput())).rejects.toThrow('boom');
+
+			expect(userSubmit).toHaveBeenCalledTimes(2);
+		});
+
+		it('releases the guard and pending when the submission is aborted (Kit skips callbacks on AbortError)', async () => {
+			const userSubmit = vi.fn(async () => async () => {});
+			enhanceWithPending(document.createElement('form'), userSubmit);
+
+			const controller = new AbortController();
+			await captured!(buildSubmitInput({ controller }));
+
+			controller.abort();
+
+			expect(fakePending.end).toHaveBeenCalledOnce();
+
+			const secondCancel = vi.fn();
+			await captured!(buildSubmitInput({ cancel: secondCancel }));
+
+			expect(secondCancel).not.toHaveBeenCalled();
+			expect(userSubmit).toHaveBeenCalledTimes(2);
+		});
+	});
+
+	describe('options param and formPending', () => {
+		it('accepts the object shape and preserves the submit contract', async () => {
+			const update = vi.fn(async () => {});
+			enhanceWithPending(document.createElement('form'), { submit: async () => undefined });
+			const callback = await captured!(buildSubmitInput());
+			await callback!({
+				formData: new FormData(),
+				formElement: document.createElement('form'),
+				action: new URL('http://test'),
+				result: successResult(),
+				update
+			});
+			expect(update).toHaveBeenCalledOnce();
+		});
+
+		it('runs the default update() when options omit submit', async () => {
+			const update = vi.fn(async () => {});
+			enhanceWithPending(document.createElement('form'), { formPending: new PendingState() });
+			const callback = await captured!(buildSubmitInput());
+			await callback!({
+				formData: new FormData(),
+				formElement: document.createElement('form'),
+				action: new URL('http://test'),
+				result: successResult(),
+				update
+			});
+			expect(update).toHaveBeenCalledOnce();
+		});
+
+		it('drives formPending in lockstep with the global counter through the full lifecycle', async () => {
+			const formPending = new PendingState();
+			enhanceWithPending(document.createElement('form'), {
+				submit: async () => async () => {},
+				formPending
+			});
+
+			expect(formPending.active).toBe(false);
+
+			const callback = await captured!(buildSubmitInput());
+
+			expect(formPending.active).toBe(true);
+			expect(fakePending.start).toHaveBeenCalledOnce();
+
+			await callback!({
+				formData: new FormData(),
+				formElement: document.createElement('form'),
+				action: new URL('http://test'),
+				result: successResult(),
+				update: vi.fn(async () => {})
+			});
+
+			expect(formPending.active).toBe(false);
+			expect(fakePending.end).toHaveBeenCalledOnce();
+		});
+
+		it('ends formPending immediately on cancel so form controls re-enable during a confirm dialog', async () => {
+			const formPending = new PendingState();
+			enhanceWithPending(document.createElement('form'), {
+				submit: async ({ cancel }) => {
+					cancel();
+				},
+				formPending
+			});
+
+			await captured!(buildSubmitInput());
+
+			expect(formPending.active).toBe(false);
+		});
 	});
 });

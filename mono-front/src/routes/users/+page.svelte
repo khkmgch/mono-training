@@ -5,9 +5,11 @@
 	import * as m from '$lib/paraglide/messages';
 
 	import { formatDateTime } from '$lib/app/shared/format';
+	import { normalizeInput } from '$lib/app/shared/ui/normalize-input';
 	import Page from '$lib/app/shared/ui/Page.svelte';
 	import PageHeader from '$lib/app/shared/ui/PageHeader.svelte';
 	import { ListProvider, SearchForm, DataTable } from '$lib/app/shared/ui/list';
+	import { collapseSpaces, stripSpaces } from '$lib/core/text';
 	import type { Column } from '$lib/core/table';
 
 	import { userListBinding } from '$lib/app/feature/user/list-binding';
@@ -79,6 +81,7 @@
 							value={ctx.query.searchParams.loginId ?? ''}
 							maxlength="64"
 							autocomplete="off"
+							use:normalizeInput={stripSpaces}
 						/>
 					</label>
 					<label class="search-field">
@@ -90,6 +93,7 @@
 							value={ctx.query.searchParams.fullName ?? ''}
 							maxlength="100"
 							autocomplete="off"
+							use:normalizeInput={collapseSpaces}
 						/>
 					</label>
 					<div class="search-actions">
