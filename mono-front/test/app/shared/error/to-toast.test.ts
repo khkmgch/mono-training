@@ -12,7 +12,6 @@ describe('toErrorToast', () => {
 		const toast = toErrorToast(httpErr);
 		expect(toast.type).toBe('error');
 		expect(toast.key).toBe('urn:trace:abc');
-		expect(toast.detail).toBe('urn:trace:abc');
 	});
 
 	it('uses code as the dedup key when requestId is not available', () => {

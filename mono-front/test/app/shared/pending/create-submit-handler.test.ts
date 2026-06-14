@@ -7,6 +7,10 @@ const gotoSpy = vi.fn(async (_target: string) => {});
 const invalidateSpy = vi.fn(async () => {});
 vi.mock('$app/navigation', () => ({ goto: gotoSpy, invalidate: invalidateSpy }));
 
+// applyAction touches the SvelteKit client runtime (app.*), which isn't
+// initialized under unit tests — stub it so redirect/error paths stay testable.
+vi.mock('$app/forms', () => ({ applyAction: vi.fn() }));
+
 const focusFirstFieldErrorSpy = vi.fn();
 vi.mock('$lib/app/shared/error/transform/focus-first-field-error', () => ({
 	focusFirstFieldError: focusFirstFieldErrorSpy

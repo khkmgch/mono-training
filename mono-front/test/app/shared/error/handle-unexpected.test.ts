@@ -3,7 +3,7 @@ import { handleUnexpected } from '$lib/app/shared/error';
 import { buildHttpError } from './helpers';
 
 describe('handleUnexpected', () => {
-	it('wraps non-HttpError input as SYSTEM with a generated requestId', () => {
+	it('wraps non-HttpError input as SYSTEM (no client-fabricated requestId)', () => {
 		const result = handleUnexpected({
 			error: new Error('boom'),
 			status: 500,
@@ -13,8 +13,7 @@ describe('handleUnexpected', () => {
 		expect(result.action).toBe('page');
 		expect(result.status).toBe(500);
 		expect(result.message).toBe('Internal error');
-		expect(typeof result.requestId).toBe('string');
-		expect(result.requestId?.length ?? 0).toBeGreaterThan(0);
+		expect(result.requestId).toBeUndefined();
 	});
 
 	it('wraps unknown values (string, null) safely', () => {
