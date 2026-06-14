@@ -79,11 +79,10 @@ describe('toAppError', () => {
 			expect(toAppError(err).requestId).toBe('urn:trace:instance-id');
 		});
 
-		it('falls back to a freshly generated id when nothing else is available', () => {
+		it('has no requestId when neither header nor instance is present', () => {
+			// requestId is server-provided only; we never fabricate one client-side.
 			const err = buildHttpError({ kind: 'http', status: 500 });
-			const id = toAppError(err).requestId;
-			expect(typeof id).toBe('string');
-			expect(id?.length ?? 0).toBeGreaterThan(0);
+			expect(toAppError(err).requestId).toBeUndefined();
 		});
 	});
 
