@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import java.util.UUID;
 import jp.co.monocrea.core.page.PageRequest;
 import jp.co.monocrea.core.page.PageResponse;
+import jp.co.monocrea.core.text.TextNormalizer;
 import jp.co.monocrea.feature.user.dto.CreateUserRequest;
 import jp.co.monocrea.feature.user.dto.UpdateUserRequest;
 import jp.co.monocrea.feature.user.dto.UserMapper;
@@ -34,7 +35,8 @@ public class UserService {
     }
 
     public PageResponse<UserResponse> list(PageRequest page, String loginId, String fullName) {
-        return repository.search(page, loginId, fullName).map(UserMapper::toResponse);
+        return repository.search(page, TextNormalizer.stripSpaces(loginId),
+                TextNormalizer.collapseSpaces(fullName)).map(UserMapper::toResponse);
     }
 
     public UserResponse get(UUID id) {

@@ -246,6 +246,126 @@ class UserResourceTest {
                 .body("type", equalTo("urn:problem:conflict-version"));
     }
 
+    @Test
+    void createNormalizesFullWidthSpaceInFullName() {
+        String id = createUser("e2e-norm-name", "Tanaka　Kenji");
+
+        given()
+                .when().get("/users/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("fullName", equalTo("Tanaka Kenji"));
+    }
+
+    @Test
+    void createTrimsAndCollapsesFullName() {
+        String id = createUser("e2e-collapse", "  Tanaka　　Kenji  ");
+
+        given()
+                .when().get("/users/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("fullName", equalTo("Tanaka Kenji"));
+    }
+
+    @Test
+    void createStripsAllSpacesFromLoginId() {
+        String id = createUser("e2e-strip　 id", "Strip Id");
+
+        given()
+                .when().get("/users/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("loginId", equalTo("e2e-stripid"));
+    }
+
+    @Test
+    void createWithFullWidthSpaceOnlyLoginIdReturns422() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(userJson("　　", "Full Width Login"))
+                .when().post("/users")
+                .then()
+                .statusCode(422)
+                .body("type", equalTo("urn:problem:validation"))
+                .body("errors.find { it.name == 'loginId' }", notNullValue());
+    }
+
+    @Test
+    void createWithFullWidthSpaceOnlyFullNameReturns422() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(userJson("e2e-fw-blank", "　　"))
+                .when().post("/users")
+                .then()
+                .statusCode(422)
+                .body("type", equalTo("urn:problem:validation"))
+                .body("errors.find { it.name == 'fullName' }", notNullValue());
+    }
+
+    @Test
+    void createDuplicateAfterTrimReturns409() {
+        createUser("e2e-trim-dup", "First");
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(userJson("  e2e-trim-dup  ", "Second"))
+                .when().post("/users")
+                .then()
+                .statusCode(409)
+                .body("type", equalTo("urn:problem:conflict-unique"))
+                .body("errors[0].name", equalTo("loginId"));
+    }
+
+    @Test
+    void updateNormalizesFullName() {
+        String id = createUser("e2e-upd-norm", "Old Name");
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(updateJson("e2e-upd-norm", "New　Name", 0))
+                .when().patch("/users/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("fullName", equalTo("New Name"));
+    }
+
+    @Test
+    void listMatchesFullWidthQueryAgainstHalfWidthStored() {
+        createUser("e2e-fw-query", "Sato Hanako");
+
+        given()
+                .queryParam("fullName", "Sato　Hanako")
+                .when().get("/users")
+                .then()
+                .statusCode(200)
+                .body("items.find { it.loginId == 'e2e-fw-query' }", notNullValue());
+    }
+
+    @Test
+    void createWithInvalidLoginIdCharsReturns422Pattern() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(userJson("e2e-bad!id", "Valid Name"))
+                .when().post("/users")
+                .then()
+                .statusCode(422)
+                .body("type", equalTo("urn:problem:validation"))
+                .body("errors.find { it.name == 'loginId' }.code", equalTo("pattern"));
+    }
+
+    @Test
+    void createWithTooShortLoginIdReturns422Min() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(userJson("ab", "Valid Name"))
+                .when().post("/users")
+                .then()
+                .statusCode(422)
+                .body("type", equalTo("urn:problem:validation"))
+                .body("errors.find { it.name == 'loginId' }.code", equalTo("min"));
+    }
+
     private String createUser(String loginId, String fullName) {
         return given()
                 .contentType(ContentType.JSON)
