@@ -8,7 +8,7 @@ export const BACKEND_COOKIE = 'backend' as const;
  * factory share a single source of truth.
  *
  * @remarks
- * - json-server runs locally on `:3000` (started via `pnpm server`).
+ * - json-server runs locally on `:3000` (started via `pnpm mock`).
  * - Quarkus runs locally on `:8080`. When the project introduces a context path,
  *   update the value here only.
  */
