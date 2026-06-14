@@ -1,42 +1,14 @@
-# sv
+# mono-front
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+SvelteKit + Svelte 5(Runes)+ TypeScript によるフロントエンドです。
+セットアップ・起動・モードの説明はリポジトリルートの [README](../README.md) を参照してください。
 
-## Creating a project
+## 開発コマンド
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-pnpm dlx sv@0.13.1 create --template minimal --types ts --add prettier eslint --install pnpm mono-front
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+| コマンド                      | 内容                                                 |
+| ----------------------------- | ---------------------------------------------------- |
+| `pnpm dev`                    | 開発サーバーを起動(http://localhost:5173)            |
+| `pnpm mock`                   | json-server(モック API)を起動(http://localhost:3000) |
+| `pnpm test`                   | テストを実行(Vitest + Testing Library)               |
+| `pnpm check`                  | 型チェック(svelte-check)                             |
+| `pnpm lint` / `pnpm format`   | Lint / 整形(ESLint + Prettier)                       |
