@@ -166,7 +166,7 @@ html {
 	gap: var(--ds-space-2);
 	width: auto;
 	/* Equal width across icon buttons regardless of label glyph width or
-	 * element padding. 6rem is tuned to JA labels ("作成" / "検索"). */
+	 * element padding. 6rem is tuned to JA labels ("登録" / "検索"). */
 	min-width: 6rem;
 	white-space: nowrap;
 }

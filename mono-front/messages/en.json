@@ -5,7 +5,9 @@
 	"common_a11y_skip_to_main": "Skip to main content",
 
 	"common_validation_required": "{field} is required",
+	"common_validation_min_chars": "{field} must be {min} characters or more",
 	"common_validation_max_chars": "{field} must be {max} characters or fewer",
+	"common_validation_pattern": "{field} may only contain letters, numbers, and . _ -",
 	"common_validation_email_format": "{field} must be a valid email address",
 	"common_validation_unique": "This {field} is already in use",
 	"common_validation_invalid": "{field} is invalid",
