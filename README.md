@@ -76,6 +76,59 @@ mono-training/
 
 Maven のインストールは不要です(Maven Wrapper `mvnw` を同梱しています)。
 
+<details>
+<summary>参考: 前提ソフトウェアのインストール手順(OS 別)</summary>
+
+汎用ツールですが、環境構築の参考として OS 別の例を記載します。
+
+### Windows (Chocolatey)
+
+PowerShell を管理者として起動し、[Chocolatey](https://chocolatey.org/install) をインストールします。
+
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+```
+
+続けて、各ソフトウェアをインストールします。
+
+```powershell
+choco install -y git
+choco install -y nodejs-lts
+choco install -y pnpm
+choco install -y corretto21jdk
+choco install -y docker-desktop
+```
+
+### macOS (Homebrew)
+
+ターミナルを起動し、[Homebrew](https://brew.sh/) をインストールします。
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+```
+
+続けて、各ソフトウェアをインストールします。
+
+```sh
+brew install git
+brew install pnpm
+brew install corretto@21
+brew install docker --cask
+```
+
+Node.js は [nodebrew](https://github.com/hokaccha/nodebrew) で LTS を導入します。
+
+```sh
+brew install nodebrew
+nodebrew setup
+echo 'export PATH=$PATH:$HOME/.nodebrew/current/bin' >> ~/.bash_profile
+# <version> は Node.js 22 以上の最新 LTS(https://github.com/nodejs/Release)に置き換える
+nodebrew install-binary <version>
+nodebrew use <version>
+```
+
+</details>
+
 ## セットアップと起動
 
 ### インストール(初回のみ)
