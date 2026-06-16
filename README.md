@@ -17,11 +17,12 @@
 ## 構成
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 30}}}%%
 graph LR
-    Browser["ブラウザ"] --> Front["SvelteKit :5173<br>(mono-front)"]
-    Front -- "既定" --> Mock["json-server :3000<br>(db.json)"]
-    Front -- "トグルで切替" --> Back["Quarkus :8080<br>(mono-back)"]
-    Back --> DB[("PostgreSQL :5432<br>(Docker)")]
+    Browser["ブラウザ"] --> Front["SvelteKit :5173 (mono-front)"]
+    Front -- "既定" --> Mock["json-server :3000 (db.json)"]
+    Front -- "トグルで切替" --> Back["Quarkus :8080 (mono-back)"]
+    Back --> DB[("PostgreSQL :5432 (Docker)")]
 ```
 
 ## 技術スタック
