@@ -13,12 +13,18 @@
 	import { BackendToggle } from '$lib/app/shared/backend';
 
 	import type { LayoutProps } from './$types';
+	import { onMount } from 'svelte';
 
 	let { data, children }: LayoutProps = $props();
 
 	setPendingContext();
 	setToastContext();
 	setConfirmContext();
+
+	// Marks the end of hydration so E2E tests wait before interacting with SSR-only markup.
+	onMount(() => {
+		document.body.dataset.hydrated = 'true';
+	});
 
 	const isTutorialActive = $derived(page.url.pathname === '/');
 	const isUsersActive = $derived(page.url.pathname.startsWith('/users'));

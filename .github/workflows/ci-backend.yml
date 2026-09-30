@@ -41,4 +41,4 @@ jobs:
         run: mvn compile -B -q
 
       - name: Test
-        run: mvn test -B
+        run: mvn verify -B -DskipITs=false
