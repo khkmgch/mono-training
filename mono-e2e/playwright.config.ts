@@ -25,8 +25,29 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    /* Lets tests call page.goto('/users') instead of the full URL. */
+    baseURL: 'http://localhost:5173',
+
+    /* Pin the UI language so text-based locators ("登録", "保存", ...) are stable. */
+    locale: 'ja-JP',
+
+    /* The frontend picks its backend from the "backend" cookie (default: json-server).
+       Start every test already pointed at Quarkus. */
+    storageState: {
+      cookies: [
+        {
+          name: 'backend',
+          value: 'quarkus',
+          domain: 'localhost',
+          path: '/',
+          expires: -1,
+          httpOnly: false,
+          secure: false,
+          sameSite: 'Lax',
+        },
+      ],
+      origins: [],
+    },
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -70,10 +91,24 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Start (or reuse) the backend and the frontend before running the tests.
+     PostgreSQL itself must already be running: `docker compose up -d` at the repository root. */
+  webServer: [
+    {
+      name: 'backend',
+      command: process.platform === 'win32' ? '.\\mvnw.cmd quarkus:dev' : './mvnw quarkus:dev',
+      cwd: '../mono-back',
+      url: 'http://localhost:8080/users',
+      reuseExistingServer: !process.env.CI,
+      timeout: 180 * 1000,
+    },
+    {
+      name: 'frontend',
+      command: 'pnpm dev',
+      cwd: '../mono-front',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+  ],
 });

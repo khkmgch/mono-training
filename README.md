@@ -34,7 +34,8 @@ graph LR
 | モック API | json-server |
 | バックエンド | Quarkus 3.34 / Java 21 / Maven |
 | バックエンド(主な拡張) | Hibernate ORM Panache / Flyway / Hibernate Validator / REST(Jackson) |
-| バックエンド(テスト) | JUnit 5 + REST Assured |
+| バックエンド(テスト) | JUnit 5 + REST Assured(`@QuarkusTest` / `@QuarkusIntegrationTest`) |
+| E2E テスト | Playwright |
 | データベース | PostgreSQL 18(Docker) |
 
 ## プロジェクト構成
@@ -52,15 +53,20 @@ mono-training/
 │       │       ├── shared/         # アプリ共通(backend 切替 / error / toast / pending ...)
 │       │       └── feature/        # 機能単位(user / tutorial)
 │       └── routes/                 # 画面(/ チュートリアル, /users ユーザー管理)
-└── mono-back/                      # Quarkus バックエンド
-    └── src/main/
-        ├── java/jp/co/monocrea/
-        │   ├── core/               # 汎用基盤(ページング / エラー / 論理削除)
-        │   ├── app/                # アプリ共通(例外マッピング / クエリ)
-        │   └── feature/user/       # 機能単位(resource → service → repository → entity)
-        └── resources/
-            ├── application.properties
-            └── db/migration/       # Flyway マイグレーション(テーブル作成 + シード)
+├── mono-back/                      # Quarkus バックエンド
+│   └── src/
+│       ├── main/
+│       │   ├── java/jp/co/monocrea/
+│       │   │   ├── core/           # 汎用基盤(ページング / エラー / 論理削除)
+│       │   │   ├── app/            # アプリ共通(例外マッピング / クエリ)
+│       │   │   └── feature/user/   # 機能単位(resource → service → repository → entity)
+│       │   └── resources/
+│       │       ├── application.properties
+│       │       └── db/migration/   # Flyway マイグレーション(テーブル作成 + シード)
+│       └── test/                   # ユニットテスト / @QuarkusTest(*Test)/ Integration Test(*IT)
+└── mono-e2e/                       # Playwright E2E テスト
+    ├── playwright.config.ts        # 接続先・ブラウザ・サーバー自動起動の設定
+    └── tests/                      # CRUD の画面操作テスト(support/ はデータ準備用ヘルパー)
 ```
 
 ## 前提条件
@@ -193,9 +199,51 @@ Quarkus が提供する REST API です(ベース URL: `http://localhost:8080`)�
 
 ## テスト
 
-| 対象 | 実行場所 | コマンド |
-|---|---|---|
-| フロントエンド | `mono-front/` | `pnpm test` |
-| バックエンド | `mono-back/` | `./mvnw test`(Windows: `.\mvnw.cmd test`) |
+| 種類 | 対象 | 実行場所 | コマンド |
+|---|---|---|---|
+| ユニット / コンポーネント | フロントエンド | `mono-front/` | `pnpm test` |
+| ユニット / `@QuarkusTest` | バックエンド | `mono-back/` | `./mvnw test`(Windows: `.\mvnw.cmd test`) |
+| Integration Test(`@QuarkusIntegrationTest`) | バックエンド | `mono-back/` | `./mvnw verify -DskipITs=false`(Windows: `.\mvnw.cmd verify -DskipITs=false`) |
+| End to End Test(Playwright) | フロントエンド + バックエンド | `mono-e2e/` | `pnpm test` |
 
-バックエンドのテストは Quarkus Dev Services がテスト専用の PostgreSQL コンテナを自動起動するため、Docker Desktop の起動が必要です(開発用 DB には影響しません)。
+### バックエンド
+
+- `./mvnw test` はユニットテストと `@QuarkusTest`(`*Test`)を実行します。
+- `./mvnw verify -DskipITs=false` は上記に加えて、ビルドした jar を `prod` プロファイルで起動し、REST API を HTTP 越しに検証する Integration Test(`*IT`)を実行します。Integration Test は既定でスキップされる設定(`skipITs=true`)のため、`-DskipITs=false` が必要です。
+- どちらも Quarkus Dev Services がテスト専用の PostgreSQL コンテナを自動起動するため、**Docker Desktop の起動が必要**です(開発用 DB には影響しません)。
+
+### End to End Test
+
+ブラウザ(Chromium / Firefox / WebKit)で、ユーザーの登録・検索・更新・削除を画面から操作して検証します。接続先は Quarkus です。
+
+初回のみ、依存とテスト用ブラウザをインストールします。
+
+```sh
+cd mono-e2e
+pnpm install
+pnpm exec playwright install
+```
+
+実行手順:
+
+```sh
+# 1. リポジトリルートで PostgreSQL を起動
+docker compose up -d
+
+# 2. mono-e2e/ でテストを実行
+cd mono-e2e
+pnpm test
+```
+
+- バックエンド(`:8080`)とフロントエンド(`:5173`)は、起動していなければテスト実行時に自動で起動・停止されます。起動済みの場合はそれを再利用します。
+- テストは開発用 DB にデータを作成しますが、一意な ID を使い、テスト後に削除(論理削除)します。
+
+| コマンド(`mono-e2e/`) | 用途 |
+|---|---|
+| `pnpm test` | 全テストを実行 |
+| `pnpm test --project=chromium` | Chromium のみで実行 |
+| `pnpm test:ui` | UI モードで実行(操作を 1 手ずつ確認) |
+| `pnpm test --trace on` | Trace を記録して実行 |
+| `pnpm test:report` | HTML レポート(Trace Viewer を含む)を開く |
+
+VS Code では拡張機能 [Playwright Test for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-playwright.playwright) の Testing サイドバーから実行・デバッグ実行でき、「Show Trace Viewer」を有効にすると実行後に Trace Viewer が開きます。
