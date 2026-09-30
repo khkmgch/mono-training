@@ -22,7 +22,7 @@
 	setConfirmContext();
 
 	// Marks the end of hydration so E2E tests wait before interacting with SSR-only markup.
-	onMount(() => {                                  // ← 追加
+	onMount(() => {
 		document.body.dataset.hydrated = 'true';
 	});
 
